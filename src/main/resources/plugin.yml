@@ -1,0 +1,7 @@
+name: GennarioFramework
+version: '${project.version}'
+main: cz.gennario.gennarioframework.Main
+api-version: '1.20'
+author: Gennario
+depend:
+  - ProtocolLib
