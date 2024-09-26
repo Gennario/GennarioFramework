@@ -67,7 +67,7 @@
     <orderEntry type="library" name="Maven: com.googlecode.json-simple:json-simple:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.comphenix.protocol:ProtocolLib:5.2.0-SNAPSHOT" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: net.bytebuddy:byte-buddy:1.14.9" level="project" />
-    <orderEntry type="library" name="Maven: de.tr7zw:item-nbt-api-plugin:2.12.2" level="project" />
+    <orderEntry type="library" name="Maven: de.tr7zw:item-nbt-api-plugin:2.13.2" level="project" />
     <orderEntry type="library" name="Maven: org.json:json:20240303" level="project" />
     <orderEntry type="library" name="Maven: com.github.cryptomorin:XSeries:11.2.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.simplejavamail:simple-java-mail:8.11.2" level="project" />

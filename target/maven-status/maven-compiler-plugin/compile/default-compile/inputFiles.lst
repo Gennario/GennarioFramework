@@ -23,6 +23,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\entities\PacketEntitySpawnOverwrite.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\Main.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\containers\GUIPagedContainer.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ItemLooper.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\StringReader.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ShootParticle.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\containers\GUITabsContainer.java
@@ -41,6 +42,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\LocationUtils.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\PacketUtils.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\BungeeUtils.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\items\ItemStackToConfig.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\components\ManipulableComponent.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ArrayUtils.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\click\PacketClickResponse.java

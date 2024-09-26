@@ -6,8 +6,13 @@ import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.config.Config;
 import cz.gennario.gennarioframework.utils.cooldown.CooldownUtil;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
+import cz.gennario.gennarioframework.utils.packet.types.display.types.PacketItemDisplay;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter

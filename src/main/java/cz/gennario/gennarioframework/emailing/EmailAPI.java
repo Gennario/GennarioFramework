@@ -1,6 +1,9 @@
 package cz.gennario.gennarioframework.emailing;
 
+import cz.gennario.gennarioframework.utils.packet.types.display.types.PacketItemDisplay;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.simplejavamail.api.email.Email;
 import org.simplejavamail.api.mailer.Mailer;
 import org.simplejavamail.api.mailer.config.TransportStrategy;

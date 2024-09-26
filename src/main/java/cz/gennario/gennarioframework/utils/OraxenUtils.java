@@ -3,10 +3,13 @@ package cz.gennario.gennarioframework.utils;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import org.bukkit.Location;
 import org.bukkit.Rotation;
 import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Collection;
 
 public final class OraxenUtils {
 
@@ -28,6 +31,10 @@ public final class OraxenUtils {
 
     public static void placeFurniture(String id, Location location, Rotation rotation, BlockFace blockFace) {
         OraxenFurniture.place(id, location, rotation, blockFace);
+    }
+
+    public static Collection<ItemBuilder> getItems() {
+        return OraxenItems.getItems();
     }
 
 }

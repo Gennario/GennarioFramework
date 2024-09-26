@@ -146,6 +146,7 @@ cz\gennario\gennarioframework\utils\packet\PacketUtils$2.class
 cz\gennario\gennarioframework\gui\GennarioGUI$2$1.class
 cz\gennario\gennarioframework\utils\Cuboid$1.class
 cz\gennario\gennarioframework\utils\ConditionUtils.class
+cz\gennario\gennarioframework\utils\ItemsAdderUtils.class
 cz\gennario\gennarioframework\utils\packet\types\display\PacketDisplay.class
 cz\gennario\gennarioframework\entities\types\EntityTextDisplay$3.class
 cz\gennario\gennarioframework\utils\ArrayUtils.class
