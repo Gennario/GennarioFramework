@@ -52,6 +52,7 @@ public class PolyPlaceholder extends PlaceholderExpansion {
                 }
             }
         }catch (Exception e) {
+            e.printStackTrace();
             return "§cloading...";
         }
         return "§cerror";

@@ -45,7 +45,7 @@ public class SQLRow {
     }
 
     public long getLong(String column) {
-        return (long) data.get(column);
+        return Long.parseLong(String.valueOf(data.get(column)));
     }
 
     public float getFloat(String column) {

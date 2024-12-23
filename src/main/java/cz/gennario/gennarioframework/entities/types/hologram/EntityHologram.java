@@ -4,7 +4,9 @@ import cz.gennario.gennarioframework.entities.PacketEntity;
 import cz.gennario.gennarioframework.entities.PacketEntityOptionalData;
 import cz.gennario.gennarioframework.entities.PacketEntityUtils;
 import cz.gennario.gennarioframework.entities.types.EntityTextDisplay;
+import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -12,7 +14,9 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -31,7 +35,12 @@ public class EntityHologram extends PacketEntity {
 
             PacketEntityOptionalData packetEntityOptionalData = new PacketEntityOptionalData();
             entityTextDisplay = (EntityTextDisplay) packetEntityUtils.createEntity(EntityType.TEXT_DISPLAY, location.clone(), EntityVisiblity.PUBLIC, packetEntityOptionalData);
-            entityTextDisplay.setText(text);
+            entityTextDisplay.setText(new EntityTextDisplay.PerPlayerText() {
+                @Override
+                public List<String> getText(Player player) {
+                    return Collections.singletonList(Utils.colorize(player, text));
+                }
+            });
             entityTextDisplay.setReplacement(replacement);
             entityTextDisplay.setViewDistance(viewDistance);
             entityTextDisplay.getPacketTextDisplay().setScale(scale);
@@ -84,6 +93,15 @@ public class EntityHologram extends PacketEntity {
                 offset = offset+line.space;
             }
         }
+    }
+
+    public void load(List<Map<?, ?>> mapList) {
+        lines.clear();
+        for (Map<?, ?> map : mapList) {
+            addLine((String) map.get("text"), Double.parseDouble(String.valueOf(map.get("space"))), Double.parseDouble(String.valueOf(map.get("scale"))));
+        }
+
+        Collections.reverse(lines);
     }
 
     @Override

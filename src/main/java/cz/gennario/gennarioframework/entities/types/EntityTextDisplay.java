@@ -57,7 +57,7 @@ public class EntityTextDisplay extends PacketEntity {
             return;
         }
 
-        packetTextDisplay.setText(List.of("§cloading...").toArray(new String[0]));
+        packetTextDisplay.setText(Utils.colorize(player, text.getText(player)).toArray(new String[0]));
         packetTextDisplay.spawn(player);
 
         packetTextDisplay.updateText(player, Utils.colorize(player, text.getText(player)).toArray(new String[0]));

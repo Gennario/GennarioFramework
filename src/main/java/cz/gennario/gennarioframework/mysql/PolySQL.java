@@ -2,6 +2,7 @@ package cz.gennario.gennarioframework.mysql;
 
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import lombok.Data;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,7 @@ public class PolySQL {
     private SQLConnection sqlConnection;
     private Map<String, SQLTable> tables;
 
-    public PolySQL(Section connectionSection) {
+    public PolySQL(JavaPlugin instance, Section connectionSection) {
         SQLConnection.DatabaseType databaseType = SQLConnection.DatabaseType.valueOf(connectionSection.getString("type"));
         if (databaseType == null) throw new IllegalArgumentException("Invalid database type");
 
@@ -33,14 +34,14 @@ public class PolySQL {
             case SQLITE -> {
                 Section sqlite = connectionSection.getSection("sqlite");
                 sqlConnection = new SQLConnection(
-                        sqlite.getString("database")
+                        instance.getDataFolder()+"/"+sqlite.getString("database")
                 );
                 tables = new HashMap<>();
             }
         }
     }
 
-    public PolySQL(SQLConnection.DatabaseType databaseType, Section connectionSection) {
+    public PolySQL(JavaPlugin instance, SQLConnection.DatabaseType databaseType, Section connectionSection) {
         switch (databaseType) {
             case MYSQL -> {
                 sqlConnection = new SQLConnection(
@@ -56,7 +57,7 @@ public class PolySQL {
             }
             case SQLITE -> {
                 sqlConnection = new SQLConnection(
-                        connectionSection.getString("database")
+                        instance.getDataFolder()+"/"+connectionSection.getString("database")
                 );
                 tables = new HashMap<>();
             }
