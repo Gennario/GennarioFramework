@@ -121,6 +121,7 @@ cz\gennario\gennarioframework\utils\BezierCurveUtil.class
 cz\gennario\gennarioframework\utils\OutlineUtils.class
 cz\gennario\gennarioframework\gui\components\SimpleComponent.class
 cz\gennario\gennarioframework\utils\packet\entity\PacketEntityExtender.class
+cz\gennario\gennarioframework\entities\types\hologram\EntityHologram$HologramLine$1.class
 cz\gennario\gennarioframework\mysql\PolySQL.class
 cz\gennario\gennarioframework\entities\types\EntityTextDisplay$4.class
 cz\gennario\gennarioframework\gui\GennarioGUI$3.class
