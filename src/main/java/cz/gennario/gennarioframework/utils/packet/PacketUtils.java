@@ -31,7 +31,7 @@ public final class PacketUtils {
     private static final boolean debug = true;
     public static final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
     public static final int MINECRAFT_VERSION = ProtocolLibrary.getProtocolManager().getMinecraftVersion().getMinor();
-    public static boolean VERSION_1_20_4_AFTER_OR_EQUAL = Utils.versionIs(20) && Utils.versionIsAfterOrEqual(4);
+    public static boolean VERSION_1_20_4_AFTER_OR_EQUAL = Utils.versionIsAfterOrEqual(19);
 
     public static final Map<Integer, PacketClickResponse> entityClickMap = new HashMap<>();
 

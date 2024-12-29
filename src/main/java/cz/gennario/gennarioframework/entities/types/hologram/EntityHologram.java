@@ -6,7 +6,6 @@ import cz.gennario.gennarioframework.entities.PacketEntityUtils;
 import cz.gennario.gennarioframework.entities.types.EntityTextDisplay;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
-import dev.dejvokep.boostedyaml.block.implementation.Section;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -43,8 +42,8 @@ public class EntityHologram extends PacketEntity {
             });
             entityTextDisplay.setReplacement(replacement);
             entityTextDisplay.setViewDistance(viewDistance);
-            entityTextDisplay.getPacketTextDisplay().setScale(scale);
-            entityTextDisplay.getPacketTextDisplay().setBillboard(Display.Billboard.VERTICAL);
+            entityTextDisplay.setScale(scale);
+            entityTextDisplay.setBillboard(Display.Billboard.VERTICAL);
         }
     }
 
@@ -81,14 +80,14 @@ public class EntityHologram extends PacketEntity {
                 offset = offset+line.space;
             }
             for (HologramLine line : lines) {
-                line.entityTextDisplay.getPacketTextDisplay().setLocation(getLocation().clone().add(0, offset, 0).clone());
+                line.entityTextDisplay.setLocation(getLocation().clone().add(0, offset, 0).clone());
                 line.entityTextDisplay.updateAll();
                 offset = offset-line.space;
             }
         }else {
             double offset = 0;
             for (HologramLine line : lines) {
-                line.entityTextDisplay.getPacketTextDisplay().setLocation(getLocation().clone().add(0, offset, 0).clone());
+                line.entityTextDisplay.setLocation(getLocation().clone().add(0, offset, 0).clone());
                 line.entityTextDisplay.updateAll();
                 offset = offset+line.space;
             }
