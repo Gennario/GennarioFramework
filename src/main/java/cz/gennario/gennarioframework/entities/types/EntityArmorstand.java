@@ -103,6 +103,19 @@ public class EntityArmorstand extends PacketEntity {
         packetArmorStand.updateEquipment(player);
     }
 
+    public enum EquipmentSlot {
+        MAINHAND,
+        OFFHAND,
+        FEET,
+        LEGS,
+        CHEST,
+        HEAD
+    }
+
+    public void addEquipment(EquipmentSlot equipmentSlot, ItemDisplayPlayerItem itemDisplayPlayerItem) {
+        equipment.add(new Pair<>(EnumWrappers.ItemSlot.valueOf(equipmentSlot.name()), itemDisplayPlayerItem));
+    }
+
     public void updateItemStack(Player... players) {
         for (Player player : players) {
             updateItemStack(player);

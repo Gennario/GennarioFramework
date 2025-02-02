@@ -173,4 +173,83 @@ public class MathUtils {
         }
         return locations;
     }
+
+
+    public static List<Location> calculatePath(Location start, double groundLevel, double gravity, double bounceFactor) {
+        List<Location> path = new ArrayList<>();
+        double velocityY = 0;
+        double y = start.getY();
+
+        // Pád k zemi
+        while (y > groundLevel) {
+            path.add(new Location(start.getWorld(), start.getX(), y, start.getZ()));
+            velocityY -= gravity; // Simulace gravitace
+            y += velocityY;
+        }
+
+        // Ujistíme se, že pád končí na groundLevel
+        y = groundLevel;
+        path.add(new Location(start.getWorld(), start.getX(), y, start.getZ()));
+
+        // Simulace malého odrazu
+        velocityY = -velocityY * bounceFactor; // Inverzní rychlost s tlumením
+        while (velocityY > 0) {
+            y += velocityY;
+            path.add(new Location(start.getWorld(), start.getX(), y, start.getZ()));
+            velocityY -= gravity; // Gravitace zpomaluje odraz
+        }
+
+        // Pád k zemi
+        while (y > groundLevel) {
+            path.add(new Location(start.getWorld(), start.getX(), y, start.getZ()));
+            velocityY -= gravity; // Simulace gravitace
+            y += velocityY;
+        }
+
+        // Ujistíme se, že pád končí na groundLevel
+        y = groundLevel;
+        path.add(new Location(start.getWorld(), start.getX(), y, start.getZ()));
+
+
+        return path;
+    }
+
+    public List<Location> fallingPathWithDirection(Location start, double groundLevel, double yawDirection, double pushAmount) {
+        List<Location> path = new ArrayList<>();
+
+        double push = pushAmount;
+        double velocityY = 0;
+        boolean direction = true;
+
+        Location clone = start.clone();
+        clone.setYaw((float) yawDirection);
+        clone.setPitch(0);
+
+        while (clone.getY() > groundLevel) {
+
+            Location prediction = clone.clone();
+            prediction.add(prediction.getDirection().multiply(direction ? push : -push));
+            prediction.setY(prediction.getY() - velocityY);
+            if (!prediction.getBlock().getType().isAir()) {
+                direction = !direction;
+                prediction.add(prediction.getDirection().multiply(direction ? push : -push));
+                prediction.setY(prediction.getY() - velocityY);
+            } else {
+                clone = prediction.clone();
+            }
+
+            if (velocityY <= 0) {
+                velocityY += 0.04;
+            }else {
+                velocityY = velocityY * 1.3;
+            }
+            if (push > 0) {
+                push = push * 0.9;
+            }
+
+            path.add(clone.clone());
+        }
+
+        return path;
+    }
 }

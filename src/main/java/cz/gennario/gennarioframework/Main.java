@@ -1,6 +1,7 @@
 package cz.gennario.gennarioframework;
 
 import cz.gennario.gennarioframework.utils.DefaultFolderCreator;
+import cz.gennario.gennarioframework.utils.LocationCommand;
 import cz.gennario.gennarioframework.utils.PluginUpdater;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.config.Config;
@@ -38,6 +39,8 @@ public final class Main extends JavaPlugin {
         checkVersionAdapter();
 
         pluginUpdater.sendLoadMessage();
+
+        new LocationCommand(this);
     }
 
     @Override

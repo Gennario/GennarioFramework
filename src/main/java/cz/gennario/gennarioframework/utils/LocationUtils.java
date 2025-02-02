@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.text.DecimalFormat;
+
 public final class LocationUtils {
 
     public static Location getLocation(String s) {
@@ -24,25 +26,34 @@ public final class LocationUtils {
         }
         return null;
     }
-
     public static String locationToString(Location location) {
+        return locationToString(location, true, true);
+    }
+
+    public static String locationToString(Location location, boolean yaw, boolean pitch) {
         String loc = location.getWorld().getName() + "(";
-        loc += location.getX() + ",";
-        loc += location.getY() + ",";
-        loc += location.getZ();
-        if(location.getYaw() != 0) loc += "," + location.getYaw();
-        if(location.getPitch() != 0) loc += "," + location.getPitch();
+        DecimalFormat format = new DecimalFormat("0.00");
+        loc += format.format(location.getX()) + ",";
+        loc += format.format(location.getY()) + ",";
+        loc += format.format(location.getZ());
+        if (yaw) if(location.getYaw() != 0) loc += "," + Math.round(location.getYaw());
+        if (pitch) if(location.getPitch() != 0) loc += "," + Math.round(location.getPitch());
         loc += ")";
         return loc;
     }
 
     public static String locationToStringCenter(Location location) {
+        return locationToStringCenter(location, true, true);
+    }
+
+    public static String locationToStringCenter(Location location, boolean yaw, boolean pitch) {
         String loc = location.getWorld().getName() + "(";
-        loc += (location.getX() + 0.5) + ",";
-        loc += location.getY() + ",";
-        loc += (location.getZ() + 0.5);
-        if(location.getYaw() != 0) loc += "," + location.getYaw();
-        if(location.getPitch() != 0) loc += "," + location.getPitch();
+        DecimalFormat format = new DecimalFormat("0.00");
+        loc += format.format((location.getBlock().getX() + 0.5)) + ",";
+        loc += format.format(location.getY()) + ",";
+        loc += format.format((location.getBlock().getZ()) + 0.5);
+        if (yaw) if(location.getYaw() != 0) loc += "," + Math.round(location.getYaw());
+        if (pitch) if(location.getPitch() != 0) loc += "," + Math.round(location.getPitch());
         loc += ")";
         return loc;
     }
