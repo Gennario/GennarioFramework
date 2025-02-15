@@ -71,7 +71,7 @@ public class EntityItemDisplay extends PacketEntity {
 
     @Override
     public void teleport(Player player, Location location) {
-        packetItemDisplay.teleport(player, location);
+        packetItemDisplay.teleportWithoutOverwrite(player, location);
     }
 
     @Override

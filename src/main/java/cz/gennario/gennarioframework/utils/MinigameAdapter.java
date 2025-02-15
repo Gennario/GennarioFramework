@@ -59,8 +59,12 @@ public abstract class MinigameAdapter implements Listener {
 
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (mode == GameMode.SINGLE_GAME) {
-                other.hidePlayer(player);
-                player.hidePlayer(other);
+                if (activePlayers.contains(other.getUniqueId())) {
+                    other.hidePlayer(player);
+                    player.hidePlayer(other);
+                }else {
+                    player.hidePlayer(other);
+                }
             } else if (mode == GameMode.MULTIPLAYER && !activePlayers.contains(other.getUniqueId())) {
                 other.hidePlayer(player);
                 player.hidePlayer(other);
@@ -75,19 +79,23 @@ public abstract class MinigameAdapter implements Listener {
         activePlayers.remove(uuid);
         inventoryBackupUtil.restoreInventory(player);
 
-        if (previousLocations.containsKey(uuid)) {
-            player.teleport(previousLocations.get(uuid));
-            previousLocations.remove(uuid);
-        }
-
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (mode == GameMode.MULTIPLAYER && activePlayers.contains(other.getUniqueId())) {
                 other.showPlayer(player);
                 player.showPlayer(other);
             } else if (mode == GameMode.SINGLE_GAME) {
-                other.showPlayer(player);
-                player.showPlayer(other);
+                if (activePlayers.contains(other.getUniqueId())) {
+                    player.showPlayer(other);
+                }else {
+                    other.showPlayer(player);
+                    player.showPlayer(other);
+                }
             }
+        }
+
+        if (previousLocations.containsKey(uuid)) {
+            player.teleport(previousLocations.get(uuid));
+            previousLocations.remove(uuid);
         }
 
         onPlayerLeave(player);
@@ -124,7 +132,6 @@ public abstract class MinigameAdapter implements Listener {
             Player activePlayer = Bukkit.getPlayer(activeUUID);
             if (activePlayer != null) {
                 if (mode == GameMode.SINGLE_GAME) {
-                    joiningPlayer.hidePlayer(activePlayer);
                     activePlayer.hidePlayer(joiningPlayer);
                 } else if (mode == GameMode.MULTIPLAYER) {
                     joiningPlayer.hidePlayer(activePlayer);

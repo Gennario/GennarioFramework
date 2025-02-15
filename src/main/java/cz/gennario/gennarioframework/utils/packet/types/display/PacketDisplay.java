@@ -86,6 +86,11 @@ public abstract class PacketDisplay extends PacketEntity {
         setLocation(location);
     }
 
+    public void teleportWithoutOverwrite(Player player, Location location) {
+        PacketContainer packetContainer = PacketUtils.teleportEntityPacket(getEntityId(), location);
+        PacketUtils.sendPacket(player, packetContainer);
+    }
+
     /* MOVE LOCATION */
     public void moveHere(Player player) {
         moveLocation(player, player.getLocation());

@@ -10,6 +10,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -32,7 +33,7 @@ public class MinigameEvents implements Listener {
 
     public MinigameEvents(MinigameAdapter minigameAdapter, EventType... blockedEvents) {
         this.minigameAdapter = minigameAdapter;
-        this.blockedEvents = List.of(blockedEvents);
+        this.blockedEvents = new ArrayList<>(List.of(blockedEvents));
 
         minigameAdapter.getPlugin().getServer().getPluginManager().registerEvents(this, minigameAdapter.getPlugin());
     }
@@ -103,7 +104,18 @@ public class MinigameEvents implements Listener {
                 isBlocked(EventType.BLOCK_TELEPORT_TO_GAME_ZONE)
                         && minigameAdapter.gameZoneExists()
                         && minigameAdapter.isInsideGameZone(event.getTo())) {
+            if (minigameAdapter.isInGame(event.getPlayer())) return;
             event.setCancelled(true);
+        }
+    }
+
+    // block command tyb complete
+    @EventHandler
+    public void onBlockTabComplete(PlayerChatTabCompleteEvent event) {
+        if (isBlocked(EventType.BLOCK_COMMAND) && isPlayerInGame(event.getPlayer())) {
+            if (event.getChatMessage().startsWith("/")) {
+                event.getTabCompletions().clear();
+            }
         }
     }
 

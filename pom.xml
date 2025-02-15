@@ -123,15 +123,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.th0rgal</groupId>
-            <artifactId>oraxen</artifactId>
-            <version>1.178.0</version>
-            <systemPath>C:/Users/lukyp/Downloads/ModernTrading/libs/oraxen-1.167.0.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
-
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.22</version>
@@ -181,5 +172,11 @@
             <version>8.11.2</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.github.Oraxen</groupId>
+            <artifactId>oraxen</artifactId>
+            <version>-3808090584-1</version>
+        </dependency>
     </dependencies>
 </project>

@@ -9,8 +9,5 @@
         <module name="GennarioFramework" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="GennarioFramework" target="16" />
-    </bytecodeTargetLevel>
   </component>
 </project>

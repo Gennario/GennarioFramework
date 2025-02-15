@@ -28,6 +28,9 @@ public class PlayerCooldownInstance {
         }
 
         Date date = cooldowns.get(key);
+        if (date == null) {
+            return false;
+        }
         boolean after = date.after(new Date());
         if(!after) {
             cooldowns.remove(key);

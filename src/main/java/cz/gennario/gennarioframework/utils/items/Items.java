@@ -4,7 +4,7 @@ import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.lone.itemsadder.api.ItemsAdder;
-import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
