@@ -321,11 +321,4 @@ public class PacketArmorStand extends PacketEntity {
         this.rightLegRotation = rightLegRotation;
         return this;
     }
-
-    public PacketArmorStand setMarker(boolean marker) {
-        this.marker = marker;
-        return this;
-    }
-
-
 }

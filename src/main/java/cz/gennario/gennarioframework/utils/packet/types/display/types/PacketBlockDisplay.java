@@ -1,7 +1,7 @@
 package cz.gennario.gennarioframework.utils.packet.types.display.types;
 
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.types.display.PacketDisplay;
 import lombok.Getter;
@@ -40,21 +40,8 @@ public class PacketBlockDisplay extends PacketDisplay {
 
     private void update(Player player, WrappedDataWatcher dataWatcher) {
         WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.getBlockDataSerializer(false);
-        if (blockData != null) {
-            if (PacketUtils.VERSION_1_20_4_AFTER_OR_EQUAL) {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, WrappedBlockData.createData(blockData));
-            } else {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, blockData);
-            }
-        }
-
-        if (blockMaterial != null) {
-            if (PacketUtils.VERSION_1_20_4_AFTER_OR_EQUAL) {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, WrappedBlockData.createData(blockMaterial));
-            } else {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, blockMaterial.createBlockData());
-            }
-        }
+        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
+        if (blockMaterial != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockMaterial.createBlockData());
 
         /* SEND PACKET */
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
@@ -82,13 +69,7 @@ public class PacketBlockDisplay extends PacketDisplay {
     public PacketBlockDisplay updateBlockData(Player player, BlockData blockData) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
         WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.getBlockDataSerializer(false);
-        if (blockData != null) {
-            if (PacketUtils.VERSION_1_20_4_AFTER_OR_EQUAL) {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, WrappedBlockData.createData(blockData));
-            } else {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, blockData);
-            }
-        }
+        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));;
         return this;
@@ -96,22 +77,11 @@ public class PacketBlockDisplay extends PacketDisplay {
 
     /* MATERIAL */
     public PacketBlockDisplay updateBlockMaterial(Player player) {
-        return updateBlockMaterial(player, blockMaterial);
+        return updateBlockData(player, blockMaterial.createBlockData());
     }
 
     public PacketBlockDisplay updateBlockMaterial(Player player, Material material) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.getBlockDataSerializer(false);
-        if (blockMaterial != null) {
-            if (PacketUtils.VERSION_1_20_4_AFTER_OR_EQUAL) {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, WrappedBlockData.createData(blockMaterial));
-            } else {
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), serializer, blockMaterial.createBlockData());
-            }
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));;
-        return this;
+        return updateBlockData(player, material.createBlockData());
     }
 
     /* SETTER */
@@ -124,5 +94,10 @@ public class PacketBlockDisplay extends PacketDisplay {
         this.blockMaterial = blockMaterial;
         this.blockData = blockMaterial.createBlockData();
         return this;
+    }
+
+    public int versionOverwrite() {
+        if(Main.getInstance().isVersionAdapter()) return -1;
+        return 0;
     }
 }

@@ -2,7 +2,6 @@ package cz.gennario.gennarioframework.utils.packet;
 
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.items.Items;
-import cz.gennario.gennarioframework.utils.replacement.Replacement;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import lombok.Getter;
@@ -31,7 +30,7 @@ public class HeadEquipmentValue {
     public HeadEquipmentValue(@NotNull HeadEquipmentType type) {
         this.type = type;
         this.items = new Items();
-        this.replacement = new ReplacementPackage().append(new Replacement((player, text) -> Utils.colorize(text)));
+        this.replacement = new ReplacementPackage().append(Utils::colorize);
     }
 
     public @Nullable ItemStack convert(@Nullable Player player) {

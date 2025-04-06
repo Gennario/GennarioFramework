@@ -3,7 +3,7 @@ package cz.gennario.gennarioframework.utils.packet;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.InternalStructure;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
@@ -31,13 +31,12 @@ public final class PacketUtils {
     private static final boolean debug = true;
     public static final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
     public static final int MINECRAFT_VERSION = ProtocolLibrary.getProtocolManager().getMinecraftVersion().getMinor();
-    public static boolean VERSION_1_20_4_AFTER_OR_EQUAL = Utils.versionIsAfterOrEqual(19);
 
     public static final Map<Integer, PacketClickResponse> entityClickMap = new HashMap<>();
 
     public static void init() {
         protocolManager.addPacketListener(new PacketAdapter(
-                PacketAdapter.params(Main.getInstance(), PacketType.Play.Client.USE_ENTITY).listenerPriority(ListenerPriority.NORMAL)
+                PacketAdapter.params(Main.getInstance(), PacketType.Play.Client.USE_ENTITY)
                         .optionAsync()) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -48,7 +47,7 @@ public final class PacketUtils {
         });
 
         /* Interact event on entity */
-        protocolManager.addPacketListener(new PacketAdapter(Main.getInstance(), ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
+        protocolManager.addPacketListener(new PacketAdapter(Main.getInstance(), PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent e) {
                 PacketContainer packet = e.getPacket();
@@ -222,7 +221,7 @@ public final class PacketUtils {
 
             packet.getIntegers().write(0, entityId);
             List<Pair<EnumWrappers.ItemSlot, ItemStack>> list = Arrays.asList(items);
-            packet.getSlotStackPairLists().write(0, list);
+            packet.getSlotStackPairLists().writeSafely(0, list);
             return packet;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
@@ -231,6 +230,24 @@ public final class PacketUtils {
     }
 
     public static PacketContainer teleportEntityPacket(int entityID, Location location) {
+        // if minercaft version is higher than 1.21.1
+        if (Utils.versionIsAfterOrEqual(21, 2)) {
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
+
+            packet.getIntegers().write(0, entityID);
+
+            InternalStructure is = packet.getStructures().getValues().get(0);
+
+            is.getVectors()
+                    .write(0, new Vector(location.getX(), location.getY(), location.getZ()))
+                    .write(1, new Vector(0, 0, 0));
+
+            is.getFloat()
+                    .write(0, location.getYaw())
+                    .write(1, location.getPitch());
+
+            return packet;
+        }
         try {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
 

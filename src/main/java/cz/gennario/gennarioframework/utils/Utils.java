@@ -99,6 +99,17 @@ public final class Utils {
         return list;
     }
 
+    public String parsePlaceholderAPI(String string, Player player) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            if (player != null && player.isOnline()) {
+                return PlaceholderAPI.setPlaceholders(player, string);
+            } else {
+                return PlaceholderAPI.setPlaceholders(null, string);
+            }
+        }
+        return string;
+    }
+
     public static String getMinecraftVersion(Server server) {
         String version = server.getVersion();
         int start = version.indexOf("MC: ") + 4;

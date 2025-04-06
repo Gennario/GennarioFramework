@@ -22,9 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@Getter
 @Setter
-public abstract class PacketEntity {
+@Getter
+public class PacketEntity {
     private int entityId;
     private Vector velocity;
 
@@ -335,6 +335,15 @@ public abstract class PacketEntity {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
         if (ticksFrozen != 0) PacketUtils.setMetadata(dataWatcher, 6, Integer.class, ticksFrozen);
+
+        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        return this;
+    }
+
+    public PacketEntity updateSlimeSize(Player player, int size) {
+        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
+
+        PacketUtils.setMetadata(dataWatcher, 16, Integer.class, size);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
         return this;
