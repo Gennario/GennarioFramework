@@ -89,7 +89,7 @@ public class ItemStackToConfig {
 
             if (profile != null) {
                 for (Property property : profile.getProperties().get("textures")) {
-                    return property.value(); // Return the first texture found
+                    return property.getValue(); // Return the first texture found
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {

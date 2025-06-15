@@ -9,7 +9,10 @@ import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.types.display.PacketDisplay;
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
@@ -68,10 +71,18 @@ public class PacketTextDisplay extends PacketDisplay {
         /* Set text */
         if (text != null) {
             try {
-                PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), WrappedDataWatcher.Registry.getChatComponentSerializer(), WrappedChatComponent.fromJson(Utils.colorize(player, this.text)).getHandle());
+                String sanitized = MiniMessage.miniMessage().serialize(
+                        LegacyComponentSerializer.legacySection().deserialize(text)
+                );
+                Component component = MiniMessage.miniMessage().deserialize(sanitized);
+                String json = GsonComponentSerializer.gson().serialize(component);
+
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(),
+                        WrappedDataWatcher.Registry.getChatComponentSerializer(),
+                        WrappedChatComponent.fromJson(json).getHandle());
             } catch (Exception e) {
                 e.printStackTrace();
-                PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), String.class, Utils.colorize(player, this.text));
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), String.class, text);
             }
         }
 
@@ -118,29 +129,34 @@ public class PacketTextDisplay extends PacketDisplay {
 
     /* TEXT */
     public PacketTextDisplay updateText(Player player) {
-        return updateText(player, new ComponentBuilder().appendLegacy(Utils.colorize(player, this.text)).create().toString());
+        return updateText(player, text);
     }
 
-    public PacketTextDisplay updateTextList(Player player, List<String> text) {
-        return updateText(player, String.join("\n", text));
+    public PacketTextDisplay updateTextList(Player player, List<String> textList) {
+        return updateText(player, String.join("\n", textList));
     }
 
-    public PacketTextDisplay updateText(Player player, String... text) {
-        return updateTextList(player, Arrays.asList(text));
+    public PacketTextDisplay updateText(Player player, String... lines) {
+        return updateTextList(player, Arrays.asList(lines));
     }
 
     public PacketTextDisplay updateText(Player player, String text) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
         if (text != null) {
             try {
-                PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), WrappedDataWatcher.Registry.getChatComponentSerializer(), WrappedChatComponent.fromJson(new Gson().toJson(Utils.colorize(player, text))).getHandle());
+                String sanitized = MiniMessage.miniMessage().serialize(
+                        LegacyComponentSerializer.legacySection().deserialize(text)
+                );
+                Component component = MiniMessage.miniMessage().deserialize(sanitized);
+                String json = GsonComponentSerializer.gson().serialize(component);
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(),
+                        WrappedDataWatcher.Registry.getChatComponentSerializer(),
+                        WrappedChatComponent.fromJson(json).getHandle());
             } catch (Exception e) {
                 e.printStackTrace();
-                PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), String.class, Utils.colorize(player, text));
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), String.class, text);
             }
         }
-
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
@@ -261,16 +277,16 @@ public class PacketTextDisplay extends PacketDisplay {
     }
 
     /* SETTER */
-    public PacketTextDisplay setText(String... text) {
-        return setTextList(Arrays.asList(text));
+    public PacketTextDisplay setText(String... lines) {
+        return setTextList(Arrays.asList(lines));
     }
 
-    public PacketTextDisplay setTextList(List<String> text) {
-        return setText(String.join("\n", text));
+    public PacketTextDisplay setTextList(List<String> lines) {
+        return setText(String.join("\n", lines));
     }
 
     public PacketTextDisplay setText(String text) {
-        this.text = new Gson().toJson(text);
+        this.text = text;
         return this;
     }
 

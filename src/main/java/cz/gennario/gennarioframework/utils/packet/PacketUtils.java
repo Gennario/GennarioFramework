@@ -11,7 +11,6 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import com.google.common.collect.Lists;
 import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
@@ -156,7 +155,7 @@ public final class PacketUtils {
             packet.getIntegers().write(0, entityId);
 
             try {
-                final List<WrappedDataValue> wrappedDataValueList = Lists.newArrayList();
+                final List<WrappedDataValue> wrappedDataValueList = new ArrayList<>();
                 watcher.getWatchableObjects().stream().filter(Objects::nonNull).forEach(entry -> {
                     final WrappedDataWatcher.WrappedDataWatcherObject dataWatcherObject = entry.getWatcherObject();
                     wrappedDataValueList.add(new WrappedDataValue(dataWatcherObject.getIndex(), dataWatcherObject.getSerializer(), entry.getRawValue()));

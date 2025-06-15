@@ -25,6 +25,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\GUISettings.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\entities\PacketEntitySpawnOverwrite.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\Main.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldConfig.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\containers\GUIPagedContainer.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ItemLooper.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\StringReader.java
@@ -37,6 +38,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\commands\SubCommand.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ActionUtils.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\entities\PacketEntity.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldExample.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\entities\types\EntityArmorstand.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\entities\types\ItemDisplayPlayerItem.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ConditionUtils.java
@@ -44,7 +46,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\replacement\ReplacementPackage.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\LocationUtils.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\PacketUtils.java
-C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\BungeeUtils.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldManagerImpl.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\items\ItemStackToConfig.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\components\ManipulableComponent.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\ArrayUtils.java
@@ -52,7 +54,9 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\placeholder\Placeholder.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\items\ItemBuilder.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\language\LanguageAPI.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldManager.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\TextComponentUtils.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldType.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\entity\PacketEntityExtender.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\emailing\EmailAPI.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\HeadEquipmentValue.java
@@ -62,6 +66,7 @@ C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennariofra
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\packet\types\display\types\PacketBlockDisplay.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\InventoryBackupUtil.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\OutlineUtils.java
+C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\world\WorldConfigBuilder.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\TableGenerator.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\utils\placeholder\SegmentInstance.java
 C:\Users\lukyp\Downloads\GennarioFramework\src\main\java\cz\gennario\gennarioframework\gui\utils\InventoryBackgrounding.java
