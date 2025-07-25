@@ -1,5 +1,6 @@
 package cz.gennario.gennarioframework;
 
+import cz.gennario.gennarioframework.test.ResolutionSetupUtil;
 import cz.gennario.gennarioframework.utils.DefaultFolderCreator;
 import cz.gennario.gennarioframework.utils.LocationCommand;
 import cz.gennario.gennarioframework.utils.PluginUpdater;
@@ -13,6 +14,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
