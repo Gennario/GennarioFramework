@@ -191,13 +191,18 @@ public class PacketArmorStand extends PacketEntity {
 
     /* UPDATE RIGHT ARM ROTATION */
     public PacketArmorStand updateRightArmRotation(Player player) {
+        updateRightArmRotation(player, rightArmRotation.getX(), rightArmRotation.getY(), rightArmRotation.getZ());
+        return this;
+    }
+
+    public PacketArmorStand updateRightArmRotation(Player player, double rotationX, double rotationY, double rotationZ) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
         if (rightArmRotation != null) {
             int id = 19;
             if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
             if (Utils.versionIsBeforeOrEqual(14)) id = 15;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightArmRotation.getX()), (float) Math.toDegrees(rightArmRotation.getY()), (float) Math.toDegrees(rightArmRotation.getZ())));
+            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rotationX), (float) Math.toDegrees(rotationY), (float) Math.toDegrees(rotationZ)));
         }
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
