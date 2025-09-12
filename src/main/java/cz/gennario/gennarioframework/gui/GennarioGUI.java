@@ -6,6 +6,8 @@ import cz.gennario.gennarioframework.gui.utils.ClickData;
 import cz.gennario.gennarioframework.gui.utils.InventoryBackgrounding;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +26,7 @@ public abstract class GennarioGUI implements Listener {
     private GUIContainer container;
 
     private InventoryType inventoryType;
-    private String title;
+    private Component title;
     private int rows;
 
     private GUISettings settings;
@@ -32,6 +34,18 @@ public abstract class GennarioGUI implements Listener {
     private String backgroundingData;
 
     public GennarioGUI(String title, int rows) {
+        this.holders = new HashMap<>();
+        this.inventoryType = InventoryType.CHEST;
+        this.title = Component.text(title);
+        this.rows = rows;
+
+        Main.getInstance().getServer().getPluginManager().registerEvents(this, Main.getInstance());
+
+        container = new GUIContainer(rows, 9);
+        settings = new GUISettings();
+    }
+
+    public GennarioGUI(Component title, int rows) {
         this.holders = new HashMap<>();
         this.inventoryType = InventoryType.CHEST;
         this.title = title;
@@ -43,7 +57,7 @@ public abstract class GennarioGUI implements Listener {
         settings = new GUISettings();
     }
 
-    public GennarioGUI(InventoryType inventoryType, String title) {
+    public GennarioGUI(InventoryType inventoryType, Component title) {
         this.holders = new HashMap<>();
         this.inventoryType = inventoryType;
         this.title = title;
@@ -54,7 +68,7 @@ public abstract class GennarioGUI implements Listener {
         settings = new GUISettings();
     }
 
-    public GennarioGUI(InventoryType inventoryType, String title, int rows) {
+    public GennarioGUI(InventoryType inventoryType, Component title, int rows) {
         this.holders = new HashMap<>();
         this.inventoryType = inventoryType;
         this.title = title;
@@ -108,7 +122,7 @@ public abstract class GennarioGUI implements Listener {
                             if(holder.getInventoryBackgrounding() != null) {
                                 inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                             }else {
-                                inventoryView.setTitle(holder.getTitle());
+                                //inventoryView.tit().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                             }
                             holders.put(player, holder);
                         }
@@ -121,7 +135,8 @@ public abstract class GennarioGUI implements Listener {
             if(holder.getInventoryBackgrounding() != null) {
                 inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
             }else {
-                inventoryView.setTitle(holder.getTitle());
+                //inventoryView.setTitle(holder.getTitle());
+                //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
             }
             holders.put(player, holder);
         }
@@ -162,7 +177,8 @@ public abstract class GennarioGUI implements Listener {
                                 if(holder.getInventoryBackgrounding() != null) {
                                     inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                                 }else {
-                                    inventoryView.setTitle(holder.getTitle());
+                                    //inventoryView.setTitle(holder.getTitle());
+                                    //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                                 }
                             }
                         }.runTask(Main.getInstance());
@@ -174,13 +190,14 @@ public abstract class GennarioGUI implements Listener {
                 if(holder.getInventoryBackgrounding() != null) {
                     inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                 }else {
-                    inventoryView.setTitle(holder.getTitle());
+                    //inventoryView.setTitle(holder.getTitle());
+                    //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                 }
             }
         }
     }
 
-    public void updatePlayerTitle(Player player, String title) {
+    public void updatePlayerTitle(Player player, Component title) {
         GGUIHolder gguiHolder = holders.get(player);
         gguiHolder.setTitle(title);
     }

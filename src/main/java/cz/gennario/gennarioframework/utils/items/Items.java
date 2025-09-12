@@ -73,6 +73,9 @@ public class Items {
             ItemBuilder itemBuilder = new ItemBuilder(OraxenItems.getItemById(value).build());
             updateItemMeta(section, itemBuilder, player, replacements);
             return itemBuilder.toItemStack();
+        } else if (materialString.startsWith("<nexo>")) {
+            String value = replacements.replace(player, materialString.replace("<nexo>", ""));
+
         }
 
         ItemBuilder item = new ItemBuilder(Material.valueOf(replacements.replace(player, materialString).toUpperCase()), amount);

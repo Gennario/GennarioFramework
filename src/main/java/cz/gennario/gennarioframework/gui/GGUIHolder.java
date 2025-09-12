@@ -7,6 +7,7 @@ import cz.gennario.gennarioframework.gui.utils.InventoryBackgrounding;
 import cz.gennario.gennarioframework.utils.Utils;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -26,7 +27,7 @@ public class GGUIHolder {
     private Player player;
     private Inventory inventory;
 
-    private String title;
+    private Component title;
 
     private Map<Player, Map<Integer, GUIComponent>> clickEventsCache;
 
@@ -38,9 +39,9 @@ public class GGUIHolder {
         this.title = gui.getTitle();
 
         if (gui.getInventoryType().name().contains("CHEST"))
-            this.inventory = Bukkit.createInventory(player, gui.getRows() * 9, Utils.colorize(player, gui.getTitle()));
+            this.inventory = Bukkit.createInventory(player, gui.getRows() * 9, gui.getTitle());
         else
-            this.inventory = Bukkit.createInventory(player, gui.getInventoryType(), Utils.colorize(player, gui.getTitle()));
+            this.inventory = Bukkit.createInventory(player, gui.getInventoryType(), gui.getTitle());
 
         inventory.setMaxStackSize(128);
         this.clickEventsCache = new HashMap<>();

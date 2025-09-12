@@ -37,6 +37,11 @@
       <option name="url" value="https://jitpack.io" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="nexomc" />
+      <option name="name" value="nexomc" />
+      <option name="url" value="https://repo.nexomc.com/releases&quot;" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="codemc-repo" />
       <option name="name" value="codemc-repo" />
       <option name="url" value="https://repo.codemc.org/repository/maven-public/" />
