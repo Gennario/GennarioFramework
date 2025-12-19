@@ -27,7 +27,7 @@ import java.util.*;
 
 public final class PacketUtils {
 
-    private static final boolean debug = true;
+    private static final boolean debug = false;
     public static final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
     public static final int MINECRAFT_VERSION = ProtocolLibrary.getProtocolManager().getMinecraftVersion().getMinor();
 

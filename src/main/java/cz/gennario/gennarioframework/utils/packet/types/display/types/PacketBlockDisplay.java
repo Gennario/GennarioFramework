@@ -39,7 +39,7 @@ public class PacketBlockDisplay extends PacketDisplay {
     }
 
     private void update(Player player, WrappedDataWatcher dataWatcher) {
-        WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.getBlockDataSerializer(false);
+        WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
         if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
         if (blockMaterial != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockMaterial.createBlockData());
 
@@ -60,7 +60,6 @@ public class PacketBlockDisplay extends PacketDisplay {
 
     /* UPDATE SPECIFIC THINGS */
 
-
     /* BLOCK DATA */
     public PacketBlockDisplay updateBlockData(Player player) {
         return updateBlockData(player, blockData);
@@ -68,10 +67,10 @@ public class PacketBlockDisplay extends PacketDisplay {
 
     public PacketBlockDisplay updateBlockData(Player player, BlockData blockData) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.getBlockDataSerializer(false);
+        WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
         if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
 
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));;
+        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
 
@@ -94,6 +93,26 @@ public class PacketBlockDisplay extends PacketDisplay {
         this.blockMaterial = blockMaterial;
         this.blockData = blockMaterial.createBlockData();
         return this;
+    }
+
+    /**
+     * Gets the correct BlockData serializer for the current server version
+     * Fixes compatibility issues with 1.21+
+     */
+    private WrappedDataWatcher.Serializer getBlockDataSerializer() {
+        try {
+            // Try 1.21+ method first
+            return WrappedDataWatcher.Registry.get(BlockData.class);
+        } catch (Exception e) {
+            // Fallback na starší verze
+            try {
+                return WrappedDataWatcher.Registry.getBlockDataSerializer(false);
+            } catch (Exception e2) {
+                Main.getInstance().getLogger().warning("Nelze získat BlockData serializer: " + e2.getMessage());
+                // Last resort fallback
+                return WrappedDataWatcher.Registry.getBlockDataSerializer(true);
+            }
+        }
     }
 
     public int versionOverwrite() {
