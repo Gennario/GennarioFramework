@@ -122,7 +122,7 @@ public abstract class GennarioGUI implements Listener {
                             if(holder.getInventoryBackgrounding() != null) {
                                 inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                             }else {
-                                //inventoryView.tit().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
+                                //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                             }
                             holders.put(player, holder);
                         }
@@ -135,7 +135,7 @@ public abstract class GennarioGUI implements Listener {
             if(holder.getInventoryBackgrounding() != null) {
                 inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
             }else {
-                //inventoryView.setTitle(holder.getTitle());
+                inventoryView.setTitle(holder.getTitle().toString());
                 //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
             }
             holders.put(player, holder);
@@ -177,7 +177,7 @@ public abstract class GennarioGUI implements Listener {
                                 if(holder.getInventoryBackgrounding() != null) {
                                     inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                                 }else {
-                                    //inventoryView.setTitle(holder.getTitle());
+                                    //inventoryView.setTitle(holder.getTitle().toString());
                                     //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                                 }
                             }
@@ -190,7 +190,7 @@ public abstract class GennarioGUI implements Listener {
                 if(holder.getInventoryBackgrounding() != null) {
                     inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
                 }else {
-                    //inventoryView.setTitle(holder.getTitle());
+                    //inventoryView.setTitle(holder.getTitle().toString());
                     //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                 }
             }
