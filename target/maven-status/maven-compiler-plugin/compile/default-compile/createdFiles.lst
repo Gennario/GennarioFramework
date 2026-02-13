@@ -132,6 +132,7 @@ cz/gennario/gennarioframework/utils/packet/PacketUtils$2.class
 cz/gennario/gennarioframework/utils/packet/types/display/PacketDisplay.class
 cz/gennario/gennarioframework/utils/debug/DebugUtils.class
 cz/gennario/gennarioframework/test/ResolutionSetupUtil$3.class
+cz/gennario/gennarioframework/utils/items/ItemBuilder$PackProviderType.class
 cz/gennario/gennarioframework/utils/ItemLooper.class
 cz/gennario/gennarioframework/utils/placeholder/Placeholder$PlaceholderAction.class
 cz/gennario/gennarioframework/utils/packet/HeadEquipmentValue.class

@@ -2,8 +2,11 @@ package cz.gennario.gennarioframework.utils.items;
 
 import com.cryptomorin.xseries.profiles.builder.XSkull;
 import com.cryptomorin.xseries.profiles.objects.Profileable;
+import com.nexomc.nexo.api.NexoItems;
 import cz.gennario.gennarioframework.utils.Pair;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
+import dev.lone.itemsadder.api.ItemsAdder;
+import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -44,6 +47,34 @@ public class ItemBuilder {
         this.itemStack = new ItemStack(m, amount, durability);
         this.replacement = new ReplacementPackage();
         this.itemMeta = itemStack.getType() == Material.PLAYER_HEAD ? (SkullMeta) itemStack.getItemMeta() : itemStack.getItemMeta();
+    }
+
+    private enum PackProviderType {
+        ITEMS_ADDER,
+        ORAXEN,
+        NEXO
+    }
+
+    public ItemBuilder(PackProviderType packProviderType, String modelName) {
+        switch (packProviderType) {
+            case ITEMS_ADDER -> {
+                ItemStack itemStack = ItemsAdder.getCustomItem(modelName);
+                this.itemStack = itemStack;
+                this.itemMeta = itemStack.getItemMeta();
+            }
+            case ORAXEN -> {
+                ItemStack itemStack = OraxenItems.getItemById(modelName).build();
+                this.itemStack = itemStack;
+                this.itemMeta = itemStack.getItemMeta();
+            }
+            case NEXO -> {
+                com.nexomc.nexo.items.ItemBuilder itemBuilder = NexoItems.itemFromId(modelName);
+                ItemStack itemStack = itemBuilder.build();
+                this.itemStack = itemStack;
+                this.itemMeta = itemStack.getItemMeta();
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + packProviderType);
+        }
     }
 
     /* Replacement */

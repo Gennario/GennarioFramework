@@ -22,6 +22,11 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="nexomc" />
+      <option name="name" value="nexomc" />
+      <option name="url" value="https://repo.nexomc.com/releases" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="oraxen" />
       <option name="name" value="Oraxen Repository" />
       <option name="url" value="https://repo.oraxen.com/releases" />

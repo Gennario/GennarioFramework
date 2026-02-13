@@ -112,7 +112,7 @@
 
         <repository>
             <id>nexomc</id>
-            <url>https://repo.nexomc.com/releases"</url>
+            <url>https://repo.nexomc.com/releases</url>
         </repository>
     </repositories>
 
@@ -201,6 +201,15 @@
             <version>-3808090584-1</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.nexomc</groupId>
+            <artifactId>nexo</artifactId>
+            <version>1.16.1</version> <!-- Nahraď požadovanou verzí -->
+            <scope>system</scope>
+            <systemPath>/Users/lukasprchal/IdeaProjects/GennarioFramework/lib/nexo-1.16.1.jar</systemPath>
+        </dependency>
+
 
 
         <dependency>

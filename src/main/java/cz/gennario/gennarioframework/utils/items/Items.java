@@ -1,5 +1,6 @@
 package cz.gennario.gennarioframework.utils.items;
 
+import com.nexomc.nexo.api.NexoItems;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -76,6 +77,8 @@ public class Items {
         } else if (materialString.startsWith("<nexo>")) {
             String value = replacements.replace(player, materialString.replace("<nexo>", ""));
 
+            com.nexomc.nexo.items.ItemBuilder item = NexoItems.itemFromId(value);
+            return item.build();
         }
 
         ItemBuilder item = new ItemBuilder(Material.valueOf(replacements.replace(player, materialString).toUpperCase()), amount);

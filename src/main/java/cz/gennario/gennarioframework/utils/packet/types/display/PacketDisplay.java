@@ -291,6 +291,23 @@ public abstract class PacketDisplay extends PacketEntity {
         return this;
     }
 
+    /* GLOBAL UPDATE */
+    public PacketDisplay updateTransform(Player player, org.bukkit.util.Transformation transform) {
+        return updateTransform(player, transform.getTranslation(), transform.getLeftRotation(), transform.getScale(), transform.getRightRotation());
+    }
+
+    public PacketDisplay updateTransform(Player player, Vector3f translation, Quaternionf rotationLeft, Vector3f scale, Quaternionf rotationRight) {
+        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
+
+        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11 + versionOverwrite(), Vector3f.class, translation);
+        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12 + versionOverwrite(), Vector3f.class, scale);
+        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13 + versionOverwrite(), Quaternionf.class, rotationLeft);
+        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14 + versionOverwrite(), Quaternionf.class, rotationRight);
+
+        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        return this;
+    }
+
 
 
     /* SETTER */
