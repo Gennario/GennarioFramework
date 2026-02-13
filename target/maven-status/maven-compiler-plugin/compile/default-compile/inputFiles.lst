@@ -58,6 +58,7 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/InventoryBackupUtil.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/gui/containers/GUIPagedContainer.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/entities/types/EntityArmorstand.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/ColorFormat.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/MathUtils.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/gui/GUISettings.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/entities/PacketEntitySpawnOverwrite.java
