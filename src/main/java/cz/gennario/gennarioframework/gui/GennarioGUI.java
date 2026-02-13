@@ -214,6 +214,14 @@ public abstract class GennarioGUI implements Listener {
         if(event.getWhoClicked() instanceof Player player) {
             if (holders.containsKey(player)) {
                 GGUIHolder holder = holders.get(player);
+
+                if (event.getClick().isShiftClick() && event.getClickedInventory() == player.getInventory()) {
+                    if (event.getView().getTopInventory().equals(holder.getInventory())) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+
                 if (holder.getInventory().equals(event.getClickedInventory())) {
                     event.setCancelled(true);
                     if(event.getCurrentItem() == null) return;

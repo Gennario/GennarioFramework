@@ -1,7 +1,13 @@
 package cz.gennario.gennarioframework.utils;
 
+import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.centermessage.CenterMessage;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -31,7 +37,17 @@ public final class Utils {
 
         s = s.replace("&", "§");
         try {
-            if(!s.isEmpty()) s = ColorAPI.formatHexColor(s);
+            if(!s.isEmpty()) {
+                switch (Main.getInstance().getColorFormat()) {
+                    case GENNARIO_FORMAT -> s = ColorAPI.formatHexColor(s);
+                    case LEGACY -> s = s.replace("&", "§");
+                    case MINIMESSAGE -> {
+                        MiniMessage mm = MiniMessage.miniMessage();
+                        Component component = mm.deserialize(s);
+                        s = LegacyComponentSerializer.legacySection().serialize(component);
+                    }
+                }
+            }
         }catch (Exception ignored){}
 
         if (s.startsWith("<center>")) {
@@ -58,7 +74,15 @@ public final class Utils {
             }
             s = s.replace("&", "§");
             try {
-                if(!s.isEmpty()) s = ColorAPI.formatHexColor(s);
+                switch (Main.getInstance().getColorFormat()) {
+                    case GENNARIO_FORMAT -> s = ColorAPI.formatHexColor(s);
+                    case LEGACY -> s = s.replace("&", "§");
+                    case MINIMESSAGE -> {
+                        MiniMessage mm = MiniMessage.miniMessage();
+                        Component component = mm.deserialize(s);
+                        s = LegacyComponentSerializer.legacySection().serialize(component);
+                    }
+                }
             }catch (Exception ignored){}
 
             if (s.startsWith("<center>")) {
@@ -87,7 +111,15 @@ public final class Utils {
             }
             s = s.replace("&", "§");
             try {
-                if(!s.isEmpty()) s = ColorAPI.formatHexColor(s);
+                switch (Main.getInstance().getColorFormat()) {
+                    case GENNARIO_FORMAT -> s = ColorAPI.formatHexColor(s);
+                    case LEGACY -> s = s.replace("&", "§");
+                    case MINIMESSAGE -> {
+                        MiniMessage mm = MiniMessage.miniMessage();
+                        Component component = mm.deserialize(s);
+                        s = LegacyComponentSerializer.legacySection().serialize(component);
+                    }
+                }
             }catch (Exception ignored){}
 
             if (s.startsWith("<center>")) {

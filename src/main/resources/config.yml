@@ -1,2 +1,8 @@
-config-version: 1
+config-version: 2
 version-adapter: AUTO
+
+# Supported formats:
+# - GENNARIO_FORMAT - original format
+# - MINIMESSAGE - MiniMessage format only
+# - LEGACY - Legacy format only
+color-format: GENNARIO_FORMAT

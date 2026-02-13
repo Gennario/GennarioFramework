@@ -69,6 +69,7 @@ cz/gennario/gennarioframework/utils/ConditionUtils.class
 cz/gennario/gennarioframework/utils/commands/SubCommandArg$CommandArgType.class
 cz/gennario/gennarioframework/entities/types/hologram/EntityHologram.class
 cz/gennario/gennarioframework/mysql/SQLWhereData.class
+cz/gennario/gennarioframework/utils/Utils$1.class
 cz/gennario/gennarioframework/utils/items/Items.class
 cz/gennario/gennarioframework/mysql/TableColumn.class
 cz/gennario/gennarioframework/utils/PluginUpdater$Checker.class
@@ -108,6 +109,7 @@ cz/gennario/gennarioframework/world/WorldConfigBuilder.class
 cz/gennario/gennarioframework/gui/utils/GUIConfigLoader$1.class
 cz/gennario/gennarioframework/entities/PacketEntitySpawnOverwrite.class
 cz/gennario/gennarioframework/utils/MessagesUtil$MessageType.class
+cz/gennario/gennarioframework/utils/ColorFormat.class
 cz/gennario/gennarioframework/entities/types/EntityTextDisplay$2.class
 cz/gennario/gennarioframework/utils/commands/CommandAPI$1.class
 cz/gennario/gennarioframework/utils/items/ItemStackToConfig.class

@@ -1,8 +1,11 @@
 package cz.gennario.gennarioframework.mysql;
 
 import cz.gennario.gennarioframework.Main;
+import org.bukkit.Bukkit;
 
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SQLConnection {
 
@@ -11,18 +14,21 @@ public class SQLConnection {
         SQLITE
     }
 
-    private String host;
-    private int port;
-    private String user;
-    private String password;
-    private String database;
-    private boolean autoReconnect;
-    private boolean useSSL;
+    private static final Logger LOGGER = Main.getInstance().getLogger();
+    private static final int CONNECTION_TIMEOUT = 2;
+    private static final int MAX_RECONNECT_ATTEMPTS = 3;
+
+    private final String host;
+    private final int port;
+    private final String user;
+    private final String password;
+    private final String database;
+    private final boolean autoReconnect;
+    private final boolean useSSL;
+    private final DatabaseType databaseType;
+
     private Connection connection;
 
-    private DatabaseType databaseType;
-
-    // Constructor for MySQL
     public SQLConnection(String host, int port, String user, String password, String database, boolean autoReconnect, boolean useSSL) {
         this.host = host;
         this.port = port;
@@ -31,115 +37,85 @@ public class SQLConnection {
         this.database = database;
         this.autoReconnect = autoReconnect;
         this.useSSL = useSSL;
-
         this.databaseType = DatabaseType.MYSQL;
-
         connect();
     }
 
-    // Constructor for SQLite
     public SQLConnection(String database) {
+        this.host = null;
+        this.port = 0;
+        this.user = null;
+        this.password = null;
         this.database = database;
-
+        this.autoReconnect = false;
+        this.useSSL = false;
         this.databaseType = DatabaseType.SQLITE;
-
         connect();
     }
 
     private void connect() {
         try {
-            switch (databaseType) {
-                case MYSQL:
-                    String mysqlUrl = String.format("jdbc:mysql://%s:%d/%s?autoReconnect=%s&useSSL=%s", host, port, database, autoReconnect, useSSL);
+            String url = switch (databaseType) {
+                case MYSQL -> {
                     Class.forName("com.mysql.cj.jdbc.Driver");
-                    connection = DriverManager.getConnection(mysqlUrl, user, password);
-                    break;
-                case SQLITE:
-                    String sqliteUrl = String.format("jdbc:sqlite:%s", database);
+                    yield String.format("jdbc:mysql://%s:%d/%s?autoReconnect=%s&useSSL=%s", host, port, database, autoReconnect, useSSL);
+                }
+                case SQLITE -> {
                     Class.forName("org.sqlite.JDBC");
-                    connection = DriverManager.getConnection(sqliteUrl);
-                    break;
-            }
-            System.out.println("Connection successful");
+                    yield String.format("jdbc:sqlite:%s", database);
+                }
+            };
+            connection = databaseType == DatabaseType.MYSQL
+                    ? DriverManager.getConnection(url, user, password)
+                    : DriverManager.getConnection(url);
+            LOGGER.info("Database connection successful");
         } catch (ClassNotFoundException | SQLException e) {
-            System.err.println("Error connecting to the database: " + e.getMessage());
-            System.err.println("Disabling the plugin...");
-            Main.getInstance().getPluginLoader().disablePlugin(Main.getInstance());
+            LOGGER.log(Level.SEVERE, "Error connecting to the database: " + e.getMessage());
         }
     }
 
-    // Method to close the connection
+    private void ensureConnection() throws SQLException {
+        if (!isConnectionValid()) {
+            for (int i = 0; i < MAX_RECONNECT_ATTEMPTS; i++) {
+                connect();
+                if (isConnectionValid()) return;
+            }
+            throw new SQLException("Failed to reconnect to database after " + MAX_RECONNECT_ATTEMPTS + " attempts");
+        }
+    }
+
     public void closeConnection() {
         if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Error closing connection", e);
             }
         }
     }
 
-    // Method to check if the connection is valid
     public boolean isConnectionValid() {
         try {
-            return connection != null && !connection.isClosed() && connection.isValid(2);
+            return connection != null && !connection.isClosed() && connection.isValid(CONNECTION_TIMEOUT);
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
 
-    // Method to execute SELECT queries
     public ResultSet executeQuery(String query) throws SQLException {
-        if (isConnectionValid()) {
-            Statement statement = connection.createStatement();
-            return statement.executeQuery(query);
-        } else {
-            // auto reconnect
-            connect();
-            return executeQuery(query);
-        }
+        ensureConnection();
+        Statement statement = connection.createStatement();
+        return statement.executeQuery(query);
     }
 
-    // Method to execute INSERT/UPDATE/DELETE queries
     public int executeUpdate(String query) throws SQLException {
-        if (isConnectionValid()) {
-            Statement statement = connection.createStatement();
+        ensureConnection();
+        try (Statement statement = connection.createStatement()) {
             return statement.executeUpdate(query);
-        } else {
-            // auto reconnect
-            connect();
-            return executeUpdate(query);
         }
     }
 
-    // Method to execute Prepared Statements for INSERT/UPDATE/DELETE
-    public int executePreparedUpdate(String query, Object... parameters) throws SQLException {
-        if (isConnectionValid()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            for (int i = 0; i < parameters.length; i++) {
-                preparedStatement.setObject(i + 1, parameters[i]);
-            }
-            return preparedStatement.executeUpdate();
-        } else {
-            // auto reconnect
-            connect();
-            return executePreparedUpdate(query, parameters);
-        }
-    }
-
-    // Method to execute Prepared Statements for SELECT
-    public ResultSet executePreparedQuery(String query, Object... parameters) throws SQLException {
-        if (isConnectionValid()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            for (int i = 0; i < parameters.length; i++) {
-                preparedStatement.setObject(i + 1, parameters[i]);
-            }
-            return preparedStatement.executeQuery();
-        } else {
-            // auto reconnect
-            connect();
-            return executePreparedQuery(query, parameters);
-        }
+    public Connection getConnection() {
+        return connection;
     }
 }
