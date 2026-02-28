@@ -42,6 +42,11 @@ public class SubCommand {
         return this;
     }
 
+    public SubCommand addArg(String name, SubCommandArg.CommandArgType type, SubCommandArg.CommandArgValue value, SubCommandArg.CommandArgDynamicTabComplete tabCompleteArgs) {
+        this.subCommandArgs.add(new SubCommandArg(name, type, value).setCustomTabCompleteArgs(tabCompleteArgs));
+        return this;
+    }
+
     public SubCommand setAliases(List<String> aliases) {
         this.aliases = aliases;
         return this;

@@ -15,27 +15,32 @@ public class SubCommandArg {
     private CommandArgType type;
     private CommandArgValue value;
 
-    private List<String> customTabCompleteArgs;
+    private CommandArgDynamicTabComplete customTabCompleteArgs;
 
     public SubCommandArg(String name, CommandArgType type, CommandArgValue value) {
         this.name = name;
         this.type = type;
         this.value = value;
-        this.customTabCompleteArgs = new ArrayList<>();
+        this.customTabCompleteArgs = ArrayList::new;
     }
 
     public SubCommandArg setCustomTabCompleteArgs(List<String> customTabCompleteArgs) {
-        this.customTabCompleteArgs = customTabCompleteArgs;
+        this.customTabCompleteArgs = () -> customTabCompleteArgs;
         return this;
     }
 
     public SubCommandArg setCustomTabCompleteArgs(String... customTabCompleteArgs) {
-        this.customTabCompleteArgs = Arrays.asList(customTabCompleteArgs);
+        this.customTabCompleteArgs = () -> Arrays.asList(customTabCompleteArgs);
         return this;
     }
 
+    public SubCommandArg setCustomTabCompleteArgs(CommandArgDynamicTabComplete tabCompleteArgs) {
+        this.customTabCompleteArgs = tabCompleteArgs;
+        return this;
+    }
+
+    @Deprecated
     public SubCommandArg addCustomTabCompleteArg(String string) {
-        this.customTabCompleteArgs.add(string);
         return this;
     }
 
@@ -56,6 +61,10 @@ public class SubCommandArg {
         MATERIAL,
         LOCATION,
         HEAD
+    }
+
+    public interface CommandArgDynamicTabComplete {
+        List<String> getTabCompleteArgs();
     }
 
 }

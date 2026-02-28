@@ -78,7 +78,12 @@ public class Items {
             String value = replacements.replace(player, materialString.replace("<nexo>", ""));
 
             com.nexomc.nexo.items.ItemBuilder item = NexoItems.itemFromId(value);
-            return item.build();
+            if (item == null) {
+                throw new IllegalArgumentException("Item with id " + value + " not found in NexoItems.");
+            }
+            ItemBuilder itemBuilder = new ItemBuilder(item.build());
+            updateItemMeta(section, itemBuilder, player, replacements);
+            return itemBuilder.toItemStack();
         }
 
         ItemBuilder item = new ItemBuilder(Material.valueOf(replacements.replace(player, materialString).toUpperCase()), amount);

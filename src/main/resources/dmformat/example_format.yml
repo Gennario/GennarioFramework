@@ -1,0 +1,33 @@
+
+# Variabled in cmd. Max variables 5. format:
+# - %var1%
+# - %var1_formatted% - number formatted
+
+format:
+  material: PAPER
+  model_data: 10128
+  amount: 4
+  slot: 12
+  display_name: '%item_name%'
+  priority: 1
+  lore:
+    - '&8Dekorace'
+    - ''
+    - '&8➥ &7Počet: &e1x'
+    - '&8➥ &7Cena: &e%var1_formatted% &fⒸ'
+    - ''
+    - '&#43FF57► Klikni &f⥞ &#43FF57pro zakoupení'
+  left_click_commands:
+    - '[console] money remove %player_name% %var1% -s'
+    - '[message] &#FF915C&lT&#FF9658&lh&#FF9B54&le&#FFA050&lr&#FFA54B&la&#FFAA47&lp&#FFAF43&li&#FFB43F&le
+    &8↬&7 úspěšně si zakoupil předmět %item_name%'
+    - '[console] nexo give %item_id% 4 %player_name%'
+  left_click_requirement:
+    requirements:
+      cookies_requirement:
+        type: '>='
+        input: '%cmi_user_balance%'
+        output: '%var1%'
+    deny_commands:
+      - '[message] &#FF915C&lT&#FF9658&lh&#FF9B54&le&#FFA050&lr&#FFA54B&la&#FFAA47&lp&#FFAF43&li&#FFB43F&le
+      &8↬ &eNemáš dostatečný počet prostředků!'

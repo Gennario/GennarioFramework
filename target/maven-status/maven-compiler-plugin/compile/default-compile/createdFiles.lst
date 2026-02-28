@@ -16,6 +16,7 @@ cz/gennario/gennarioframework/utils/MessagesUtil.class
 cz/gennario/gennarioframework/utils/discord/DiscordWebhook$EmbedObject$Footer.class
 cz/gennario/gennarioframework/gui/GUISettings.class
 cz/gennario/gennarioframework/utils/ArrayUtils.class
+cz/gennario/gennarioframework/utilcommands/DMFormatCommand.class
 cz/gennario/gennarioframework/utils/packet/click/PacketClickResponse.class
 cz/gennario/gennarioframework/entities/types/hologram/EntityHologram$HologramLine.class
 cz/gennario/gennarioframework/utils/replacement/Replacement$ReplacementAction.class
@@ -38,6 +39,7 @@ cz/gennario/gennarioframework/utils/PacketGameModeUtil.class
 cz/gennario/gennarioframework/utils/placeholder/PlaceholderSegment.class
 cz/gennario/gennarioframework/utils/packet/click/PacketClickType.class
 cz/gennario/gennarioframework/utils/language/Language.class
+cz/gennario/gennarioframework/utils/commands/SubCommandArg$CommandArgDynamicTabComplete.class
 cz/gennario/gennarioframework/utils/items/HeadItem$HeadType.class
 cz/gennario/gennarioframework/entities/types/EntityTextDisplay$PerPlayerText.class
 cz/gennario/gennarioframework/utils/placeholder/PolyPlaceholder.class
@@ -96,7 +98,7 @@ cz/gennario/gennarioframework/utils/HashmapUtils.class
 cz/gennario/gennarioframework/gui/GennarioGUI.class
 cz/gennario/gennarioframework/mysql/SQLWhereData$WhereOperator.class
 cz/gennario/gennarioframework/gui/GUISettings$OpenMethod.class
-cz/gennario/gennarioframework/utils/LocationCommand.class
+cz/gennario/gennarioframework/utilcommands/DMFormatCommand$InventorySetupInstance.class
 cz/gennario/gennarioframework/utils/placeholder/SegmentInstance.class
 cz/gennario/gennarioframework/utils/commands/SubCommandExtender.class
 cz/gennario/gennarioframework/world/WorldExample.class
@@ -169,6 +171,7 @@ cz/gennario/gennarioframework/utils/ArrayUtils$ArrayConvertor.class
 cz/gennario/gennarioframework/mysql/SQLTable$TopSortDirection.class
 cz/gennario/gennarioframework/utils/commands/CommandSettings.class
 cz/gennario/gennarioframework/entities/types/EntityTextDisplay$1.class
+cz/gennario/gennarioframework/utilcommands/LocationCommand.class
 cz/gennario/gennarioframework/gui/GUIComponent.class
 cz/gennario/gennarioframework/test/ResolutionSetupUtil$2.class
 cz/gennario/gennarioframework/mysql/SQLAutoSaveTask$1.class

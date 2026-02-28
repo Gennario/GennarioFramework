@@ -1,5 +1,8 @@
-package cz.gennario.gennarioframework.utils;
+package cz.gennario.gennarioframework.utilcommands;
 
+import cz.gennario.gennarioframework.utils.LocationUtils;
+import cz.gennario.gennarioframework.utils.TextComponentUtils;
+import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.commands.CommandAPI;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;

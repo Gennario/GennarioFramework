@@ -274,22 +274,22 @@ public class CommandAPI {
                                     case LONG:
                                     case FLOAT:
                                     case DOUBLE:
-                                        if (!subCommandArg.getCustomTabCompleteArgs().isEmpty()) {
-                                            return subCommandArg.getCustomTabCompleteArgs();
+                                        if (!subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs().isEmpty()) {
+                                            return subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs();
                                         }
                                         list.add("[<" + subCommand.getSubCommandArgs().get(count).getName() + ">]");
                                         return list;
                                     case MATERIAL:
-                                        if (!subCommandArg.getCustomTabCompleteArgs().isEmpty()) {
-                                            return subCommandArg.getCustomTabCompleteArgs();
+                                        if (!subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs().isEmpty()) {
+                                            return subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs();
                                         }
                                         for (Material material : Material.values()) {
                                             list.add(material.name());
                                         }
                                         return list;
                                     case ENTITY:
-                                        if (!subCommandArg.getCustomTabCompleteArgs().isEmpty()) {
-                                            return subCommandArg.getCustomTabCompleteArgs();
+                                        if (!subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs().isEmpty()) {
+                                            return subCommandArg.getCustomTabCompleteArgs().getTabCompleteArgs();
                                         }
                                         for (EntityType entityType : EntityType.values()) {
                                             list.add(entityType.name());

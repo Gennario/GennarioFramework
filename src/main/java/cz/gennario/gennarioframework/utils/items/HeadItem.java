@@ -1,8 +1,6 @@
 package cz.gennario.gennarioframework.utils.items;
 
 import com.cryptomorin.xseries.XMaterial;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -14,11 +12,8 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.UUID;
 
 public class HeadItem {
@@ -47,29 +42,37 @@ public class HeadItem {
         }
     }
 
-    public static ItemStack getSkullByTexture(String value) {
+    public static ItemStack getSkullByTexture(String base64) {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
-        if (value.isEmpty() || value.equals("none")) return head;
+        if (base64 == null || base64.isEmpty() || base64.equals("none")) return head;
 
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
         try {
-            Method setProfile = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
-            setProfile.setAccessible(true);
+            // Dekóduj base64 a extrahuj URL textury
+            String decoded = new String(Base64.getDecoder().decode(base64));
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(decoded);
+            JSONObject textures = (JSONObject) json.get("textures");
+            JSONObject skin = (JSONObject) textures.get("SKIN");
+            String skinUrl = (String) skin.get("url");
 
-            GameProfile profile = new GameProfile(UUID.randomUUID(), "skull-texture");
-            profile.getProperties().put("textures", new Property("textures", value));
-
-            setProfile.invoke(meta, profile);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            GameProfile profile = new GameProfile(UUID.randomUUID(), "");
-            profile.getProperties().put("textures", new Property("textures", value));
+            // Použij moderní Bukkit API
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+            PlayerTextures playerTextures = profile.getTextures();
+            playerTextures.setSkin(new URL(skinUrl));
+            profile.setTextures(playerTextures);
+            meta.setOwnerProfile(profile);
+        } catch (Exception e) {
+            // Fallback - pokus se použít URL přímo
             try {
-                Field profileField = meta.getClass().getDeclaredField("profile");
-                profileField.setAccessible(true);
-                profileField.set(meta, profile);
-            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException oldExe) {
-                System.out.println("§c§lBase64 not found!");
+                PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+                PlayerTextures playerTextures = profile.getTextures();
+                playerTextures.setSkin(new URL("http://textures.minecraft.net/texture/" + base64));
+                profile.setTextures(playerTextures);
+                meta.setOwnerProfile(profile);
+            } catch (Exception ex) {
+                System.out.println("§c§lFailed to set skull texture!");
             }
         }
 
@@ -79,19 +82,21 @@ public class HeadItem {
 
     public static ItemStack getSkullByUrl(String value) {
         ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
-        if (value.isEmpty() || value.equals("none")) return head;
+        if (value == null || value.isEmpty() || value.equals("none")) return head;
 
         SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 
-        PlayerProfile playerProfile = Bukkit.createPlayerProfile(UUID.randomUUID());
-        PlayerTextures playerTextures = playerProfile.getTextures();
         try {
+            PlayerProfile playerProfile = Bukkit.createPlayerProfile(UUID.randomUUID());
+            PlayerTextures playerTextures = playerProfile.getTextures();
             playerTextures.setSkin(new URL("http://textures.minecraft.net/texture/" + value));
-        } catch (MalformedURLException e) {e.printStackTrace();}
-        playerProfile.setTextures(playerTextures);
-        skullMeta.setOwnerProfile(playerProfile);
-        head.setItemMeta(skullMeta);
+            playerProfile.setTextures(playerTextures);
+            skullMeta.setOwnerProfile(playerProfile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        head.setItemMeta(skullMeta);
         return head;
     }
 
@@ -119,7 +124,7 @@ public class HeadItem {
         try {
             URL url = new URL(urlString);
             reader = new BufferedReader(new InputStreamReader(url.openStream()));
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             int read;
             char[] chars = new char[1024];
             while ((read = reader.read(chars)) != -1) buffer.append(chars, 0, read);
@@ -128,7 +133,6 @@ public class HeadItem {
             if (reader != null) reader.close();
         }
     }
-
 
     private static String getPlayerId(String playerName) {
         try {
