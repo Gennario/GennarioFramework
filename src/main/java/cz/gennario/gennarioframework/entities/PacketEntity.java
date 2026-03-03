@@ -18,7 +18,8 @@ public abstract class PacketEntity {
         ENTITY_DISPLAY,
         TEXT_DISPLAY,
         ARMOR_STAND,
-        HOLOGRAM
+        HOLOGRAM,
+        INTERACTION
     }
     public enum EntityVisiblity {
         PUBLIC,

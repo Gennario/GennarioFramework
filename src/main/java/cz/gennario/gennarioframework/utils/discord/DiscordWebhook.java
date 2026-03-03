@@ -15,7 +15,9 @@ import java.util.*;
 
 /**
  * Class used to execute Discord Webhooks with low effort
+ * @deprecated Use DiscordWebhookV2 from discordv2 package instead for Discord Messaging v2 support
  */
+@Deprecated
 @Setter
 public class DiscordWebhook {
 

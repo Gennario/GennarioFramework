@@ -10,6 +10,7 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/gui/GennarioGUI.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/items/ItemBuilder.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/LocationUtils.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/PacketDroppedItem.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/Pair.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/debug/Logger.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/gui/GUIContainer.java
@@ -19,11 +20,13 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/entity/PacketEntity.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/mysql/SQLAutoSaveTask.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/mysql/TableColumn.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/PacketInteraction.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/cooldown/CooldownUtil.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/commands/SubCommandExtender.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/entities/PacketEntity.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/FileUtils.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/commands/CommandArg.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/entities/types/EntityInteraction.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/language/Language.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/display/types/PacketTextDisplay.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/commands/CommandAPI.java

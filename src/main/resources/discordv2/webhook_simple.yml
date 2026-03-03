@@ -1,0 +1,62 @@
+# ============================================
+# Discord Webhook V2 - Simple Example
+# Basic webhook configuration with Components V2
+# ============================================
+
+# Enable/disable the webhook
+enabled: true
+
+# Your Discord webhook URL
+url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+# Custom bot username & avatar (optional)
+username: "MyBot"
+avatar: "https://i.imgur.com/oBPXx0D.png"
+
+# Message text - appears ABOVE containers (optional)
+# Use for pinging roles: <@&ROLE_ID>, users: <@USER_ID>, @everyone
+message: ""
+
+# ============================================
+# CONTAINERS (Components V2)
+# Use this for NO color bar support!
+# ============================================
+containers:
+  main:
+    # "none" = no color bar (transparent)
+    # "#5865F2" = Discord Blurple
+    accent-color: "none"
+    components:
+      title:
+        type: text
+        content: "# 📢 Server Notification"
+      message:
+        type: text
+        content: |
+          Hello **%player%**!
+          
+          Welcome to our server.
+
+# ============================================
+# BUTTONS (URL Links)
+# ============================================
+action-rows:
+  row-1:
+    buttons:
+      website:
+        style: link
+        label: "🌐 Website"
+        url: "https://example.com"
+
+# ============================================
+# LEGACY EMBEDS (Classic mode)
+# NOTE: Classic embeds ALWAYS have a color bar!
+# Uncomment to use instead of containers:
+# ============================================
+# embeds:
+#   main:
+#     title: "Server Notification"
+#     description: "This is a simple embed message."
+#     color: "#5865F2"
+#     footer:
+#       text: "Powered by GennarioFramework"

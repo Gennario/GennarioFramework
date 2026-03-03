@@ -1,6 +1,7 @@
 package cz.gennario.gennarioframework.entities;
 
 import cz.gennario.gennarioframework.entities.types.EntityArmorstand;
+import cz.gennario.gennarioframework.entities.types.EntityInteraction;
 import cz.gennario.gennarioframework.entities.types.EntityItemDisplay;
 import cz.gennario.gennarioframework.entities.types.EntityTextDisplay;
 import cz.gennario.gennarioframework.entities.types.hologram.EntityHologram;
@@ -47,6 +48,13 @@ public final class PacketEntityUtils {
             }
             case HOLOGRAM: {
                 packetEntity = new EntityHologram(this, entityVisiblity, location);
+                break;
+            }
+            case INTERACTION: {
+                float width = packetEntityOptionalData.getInteractionWidth();
+                float height = packetEntityOptionalData.getInteractionHeight();
+                boolean responsive = packetEntityOptionalData.isInteractionResponsive();
+                packetEntity = new EntityInteraction(location, entityVisiblity, width, height, responsive);
                 break;
             }
         }

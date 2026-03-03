@@ -7,6 +7,10 @@ import dev.dejvokep.boostedyaml.block.implementation.Section;
 import java.awt.*;
 import java.io.IOException;
 
+/**
+ * @deprecated Use WebhookConfigBuilderV2 from discordv2 package instead for Discord Messaging v2 support
+ */
+@Deprecated
 public class WebhookConfigBuilder {
 
     private Section section;

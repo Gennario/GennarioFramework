@@ -1,0 +1,367 @@
+# ============================================
+# Discord Webhook V2 - Full Feature Example
+# ============================================
+# This example demonstrates ALL available features
+# of the Discord Components V2 webhook system.
+#
+# API: Uses /api/v10/webhooks/ with ?with_components=true
+# ============================================
+
+enabled: true
+
+# ============================================
+# BASIC SETTINGS
+# ============================================
+
+# Your Discord webhook URL
+url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+# Custom bot username & avatar
+username: "GennarioBot"
+avatar: "https://i.imgur.com/oBPXx0D.png"
+
+# Message text - appears ABOVE containers/embeds
+# Use this for pinging roles, users, or plain text
+# Supports: @everyone, <@&ROLE_ID>, <@USER_ID>, etc.
+message: "Hey <@&123456789> check this out! 🎉"
+
+# Message flags (optional)
+silent: false          # Suppress push/desktop notification
+suppress-embeds: false # Suppress link embeds in content
+
+# ============================================
+# CONTAINERS (Components V2)
+# The main building blocks for Discord Messaging v2
+# Containers replace traditional embeds with more flexibility
+# ============================================
+containers:
+  # ----------------------------------------
+  # Container 1 - NO COLOR BAR
+  # ----------------------------------------
+  announcement:
+    # accent-color options:
+    # - "none" or "transparent" = NO color bar (transparent) ← NEW IN V2!
+    # - "#5865F2" = Discord Blurple
+    # - "#FF0000" = Red
+    # - "#00FF00" = Green
+    # - "#FFFF00" = Yellow
+    accent-color: "none"
+    spoiler: false  # Wrap in spoiler?
+
+    components:
+      # TextDisplay - Supports full Markdown
+      header:
+        type: text
+        content: "# 📢 Important Announcement"
+
+      subtitle:
+        type: text
+        content: "### Welcome, **%player%**!"
+
+      body:
+        type: text
+        content: |
+          Hello and welcome to our **Minecraft Server**!
+          
+          This message is using **Discord Components V2** which includes:
+          
+          ✅ No color sidebar (transparent)
+          ✅ Multiple text sections
+          ✅ Markdown headers (# ## ###)
+          ✅ Media galleries
+          ✅ Separators
+          ✅ File displays
+          
+          > This is a quote block
+          
+          ```java
+          // Code blocks work too!
+          System.out.println("Hello!");
+          ```
+
+      # Separator - Visual divider
+      divider1:
+        type: separator
+        divider: true    # Show the line?
+        spacing: 1       # 1 = small, 2 = large
+
+      # Media Gallery - Display multiple images
+      gallery:
+        type: media-gallery
+        items:
+          - url: "https://i.imgur.com/oBPXx0D.png"
+            description: "Server Logo"
+            spoiler: false
+          - url: "https://i.imgur.com/example.png"
+            description: "Banner Image"
+          - url: "https://i.imgur.com/another.png"
+            # No description = null
+
+      divider2:
+        type: separator
+        divider: true
+        spacing: 2  # Large spacing
+
+      # File Display (for attachments)
+      # Note: Requires actual file attachment
+      # file-example:
+      #   type: file
+      #   url: "attachment://rules.pdf"
+      #   spoiler: false
+
+  # ----------------------------------------
+  # Container 2 - WITH COLOR BAR
+  # ----------------------------------------
+  server-info:
+    accent-color: "#5865F2"  # Discord Blurple
+    components:
+      info-header:
+        type: text
+        content: "## ℹ️ Server Information"
+
+      info-body:
+        type: text
+        content: |
+          **Server:** %server_name%
+          **Online:** %online_players%/%max_players%
+          **TPS:** %server_tps%
+          **Your Ping:** %player_ping%ms
+          **Your World:** %player_world%
+
+  # ----------------------------------------
+  # Container 3 - STATISTICS (Red color)
+  # ----------------------------------------
+  stats:
+    accent-color: "#ED4245"  # Red
+    components:
+      stats-header:
+        type: text
+        content: "## 📊 Your Statistics"
+
+      stats-body:
+        type: text
+        content: |
+          **Kills:** %statistic_player_kills%
+          **Deaths:** %statistic_deaths%
+          **K/D Ratio:** %player_kdr%
+          **Play Time:** %player_playtime%
+          **Balance:** $%vault_eco_balance%
+
+  # ----------------------------------------
+  # Container 4 - LINKS (Green color)
+  # ----------------------------------------
+  links:
+    accent-color: "#57F287"  # Green
+    components:
+      links-header:
+        type: text
+        content: "## 🔗 Useful Links"
+
+      links-body:
+        type: text
+        content: |
+          • [Website](https://example.com)
+          • [Discord](https://discord.gg/example)
+          • [Store](https://store.example.com)
+          • [Wiki](https://wiki.example.com)
+          • [Vote](https://vote.example.com)
+
+  # ----------------------------------------
+  # Container 5 - FOOTER (No color bar)
+  # ----------------------------------------
+  footer:
+    accent-color: "none"
+    components:
+      footer-text:
+        type: text
+        content: "-# Thanks for playing on our server! 💜"
+
+# ============================================
+# ACTION ROWS (Buttons & Select Menus)
+# Up to 5 rows total
+# Each row can contain:
+# - Up to 5 buttons
+# - OR 1 select menu (not both!)
+# ============================================
+action-rows:
+  # ----------------------------------------
+  # Row 1 - URL Link Buttons
+  # These work with webhooks (no bot needed)
+  # ----------------------------------------
+  row-1:
+    buttons:
+      website:
+        style: link
+        label: "🌐 Website"
+        url: "https://example.com"
+        emoji: "🌐"
+        disabled: false
+
+      discord:
+        style: link
+        label: "💬 Discord"
+        url: "https://discord.gg/example"
+        emoji: "💬"
+
+      store:
+        style: link
+        label: "🛒 Store"
+        url: "https://store.example.com"
+        emoji: "🛒"
+
+      vote:
+        style: link
+        label: "⭐ Vote"
+        url: "https://vote.example.com"
+        emoji: "⭐"
+
+      wiki:
+        style: link
+        label: "📖 Wiki"
+        url: "https://wiki.example.com"
+        emoji: "📖"
+
+  # ----------------------------------------
+  # Row 2 - More Link Buttons
+  # ----------------------------------------
+  row-2:
+    buttons:
+      youtube:
+        style: link
+        label: "YouTube"
+        url: "https://youtube.com/@example"
+        emoji: "🎬"
+
+      twitter:
+        style: link
+        label: "Twitter"
+        url: "https://twitter.com/example"
+        emoji: "🐦"
+
+      github:
+        style: link
+        label: "GitHub"
+        url: "https://github.com/example"
+        emoji: "🐙"
+
+  # ----------------------------------------
+  # Row 3 - Interactive Buttons (Bot only!)
+  # NOTE: These require a Discord bot to handle interactions
+  # Webhooks cannot receive button click events
+  # ----------------------------------------
+  # row-3:
+  #   buttons:
+  #     accept:
+  #       style: success    # Green button
+  #       label: "Accept"
+  #       custom-id: "accept_btn_%player%"
+  #       emoji: "✅"
+  #       disabled: false
+  #
+  #     maybe:
+  #       style: primary    # Blurple button
+  #       label: "Maybe"
+  #       custom-id: "maybe_btn_%player%"
+  #       emoji: "🤔"
+  #
+  #     decline:
+  #       style: danger     # Red button
+  #       label: "Decline"
+  #       custom-id: "decline_btn_%player%"
+  #       emoji: "❌"
+  #
+  #     skip:
+  #       style: secondary  # Gray button
+  #       label: "Skip"
+  #       custom-id: "skip_btn_%player%"
+  #       emoji: "⏭️"
+
+  # ----------------------------------------
+  # Row 4 - String Select Menu (Bot only!)
+  # NOTE: Requires a Discord bot to handle interactions
+  # ----------------------------------------
+  # row-4:
+  #   select-menu:
+  #     custom-id: "server_select_%player%"
+  #     placeholder: "🎮 Choose a server..."
+  #     min-values: 1
+  #     max-values: 1
+  #     disabled: false
+  #     options:
+  #       survival:
+  #         label: "⚔️ Survival"
+  #         value: "survival"
+  #         description: "Classic survival gameplay"
+  #         emoji: "⚔️"
+  #         default: true  # Pre-selected option
+  #
+  #       creative:
+  #         label: "🎨 Creative"
+  #         value: "creative"
+  #         description: "Build without limits"
+  #         emoji: "🎨"
+  #
+  #       skyblock:
+  #         label: "🏝️ Skyblock"
+  #         value: "skyblock"
+  #         description: "Start on a floating island"
+  #         emoji: "🏝️"
+  #
+  #       prison:
+  #         label: "⛏️ Prison"
+  #         value: "prison"
+  #         description: "Mine your way to freedom"
+  #         emoji: "⛏️"
+  #
+  #       minigames:
+  #         label: "🎮 Minigames"
+  #         value: "minigames"
+  #         description: "Fun party games"
+  #         emoji: "🎮"
+
+# ============================================
+# LEGACY EMBEDS (Optional)
+# NOTE: When containers are present, embeds are IGNORED
+# Use this only for backwards compatibility
+# ============================================
+# embeds:
+#   main-embed:
+#     title: "📢 Server Notification"
+#     description: |
+#       This is a **legacy embed** with a color sidebar.
+#
+#       Use containers instead for no-color-bar support!
+#     url: "https://example.com"
+#     color: "#5865F2"
+#     timestamp: "2024-01-15T12:00:00Z"
+#
+#     author:
+#       name: "%player%"
+#       url: "https://example.com/players/%player%"
+#       icon: "https://crafatar.com/avatars/%player_uuid%"
+#
+#     thumbnail:
+#       url: "https://i.imgur.com/oBPXx0D.png"
+#
+#     image:
+#       url: "https://i.imgur.com/banner.png"
+#
+#     footer:
+#       text: "GennarioFramework • %date%"
+#       icon: "https://i.imgur.com/oBPXx0D.png"
+#
+#     fields:
+#       field-1:
+#         name: "🎮 Server"
+#         value: "%server_name%"
+#         inline: true
+#       field-2:
+#         name: "👤 Players"
+#         value: "%online_players%/%max_players%"
+#         inline: true
+#       field-3:
+#         name: "📊 Stats"
+#         value: |
+#           Kills: %player_kills%
+#           Deaths: %player_deaths%
+#         inline: false
