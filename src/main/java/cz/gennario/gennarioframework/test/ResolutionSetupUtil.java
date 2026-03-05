@@ -1,5 +1,6 @@
 package cz.gennario.gennarioframework.test;
 
+import cz.gennario.gennarioframework.utils.FoliaScheduler;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
@@ -7,7 +8,6 @@ import org.bukkit.event.*;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
@@ -80,11 +80,9 @@ public class ResolutionSetupUtil implements Listener {
         }
         playerSettings.remove(id);
         player.sendMessage("§7Screen settings reset. Starting new setup...");
-        new BukkitRunnable() {
-            public void run() {
-                if (player.isOnline()) startResolutionSetup(player);
-            }
-        }.runTaskLater(plugin, 10L);
+        FoliaScheduler.runForEntityLater(plugin, player, () -> {
+            if (player.isOnline()) startResolutionSetup(player);
+        }, null, 10L);
     }
 
     public static void startResolutionSetup(Player player) {
@@ -97,12 +95,14 @@ public class ResolutionSetupUtil implements Listener {
         activeSessions.put(id, session);
         createSetupDisplay(player, session);
 
-        new BukkitRunnable() {
-            public void run() {
-                if (!activeSessions.containsKey(id) || !player.isOnline()) cancel();
-                else updateDisplayPosition(player, session);
+        final FoliaScheduler.WrappedTask[] taskHolder = new FoliaScheduler.WrappedTask[1];
+        taskHolder[0] = FoliaScheduler.runSyncTimer(plugin, () -> {
+            if (!activeSessions.containsKey(id) || !player.isOnline()) {
+                if (taskHolder[0] != null) taskHolder[0].cancel();
+            } else {
+                updateDisplayPosition(player, session);
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }, 0L, 1L);
     }
 
     // ===== Interní pomocné metody =====
@@ -224,11 +224,9 @@ public class ResolutionSetupUtil implements Listener {
                 new Vector3f(0.1f, 0.1f, 0.1f),
                 new AxisAngle4f()
         ));
-        new BukkitRunnable() {
-            public void run() {
-                if (cursor.isValid()) cursor.remove();
-            }
-        }.runTaskLater(plugin, 100L);
+        FoliaScheduler.runSyncLater(plugin, () -> {
+            if (cursor.isValid()) cursor.remove();
+        }, 100L);
     }
 
     // ===== Eventy =====
@@ -236,13 +234,11 @@ public class ResolutionSetupUtil implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        new BukkitRunnable() {
-            public void run() {
-                if (p.isOnline() && !hasPlayerSettings(p)) {
-                    startResolutionSetup(p);
-                }
+        FoliaScheduler.runForEntityLater(plugin, p, () -> {
+            if (p.isOnline() && !hasPlayerSettings(p)) {
+                startResolutionSetup(p);
             }
-        }.runTaskLater(plugin, 20L);
+        }, null, 20L);
     }
 
     @EventHandler

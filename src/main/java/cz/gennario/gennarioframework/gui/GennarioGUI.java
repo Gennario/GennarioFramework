@@ -4,6 +4,7 @@ import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.gui.containers.GUIPagedContainer;
 import cz.gennario.gennarioframework.gui.utils.ClickData;
 import cz.gennario.gennarioframework.gui.utils.InventoryBackgrounding;
+import cz.gennario.gennarioframework.utils.FoliaScheduler;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -13,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,16 +86,13 @@ public abstract class GennarioGUI implements Listener {
     public abstract void onClose(InventoryCloseEvent event);
 
     public void autoUpdate(int time) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : holders.keySet()) {
-                    if(player.getOpenInventory().getTopInventory().equals(holders.get(player).getInventory())) {
-                        update(player, false);
-                    }
+        FoliaScheduler.runSyncTimer(Main.getInstance(), () -> {
+            for (Player player : holders.keySet()) {
+                if(player.getOpenInventory().getTopInventory().equals(holders.get(player).getInventory())) {
+                    update(player, false);
                 }
             }
-        }.runTaskTimer(Main.getInstance(), 0, time);
+        }, 0, time);
     }
 
     public void open(Player player) {
@@ -111,24 +108,18 @@ public abstract class GennarioGUI implements Listener {
         }
         holder.clearClickEventsCache(player);
         if(settings.getOpenMethod().equals(GUISettings.OpenMethod.ASYNC)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    holder.loadContainer(0, container.clone(), true);
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            InventoryView inventoryView = player.openInventory(holder.getInventory());
-                            if(holder.getInventoryBackgrounding() != null) {
-                                inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
-                            }else {
-                                //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
-                            }
-                            holders.put(player, holder);
-                        }
-                    }.runTask(Main.getInstance());
-                }
-            }.runTaskAsynchronously(Main.getInstance());
+            FoliaScheduler.runAsync(Main.getInstance(), () -> {
+                holder.loadContainer(0, container.clone(), true);
+                FoliaScheduler.runForEntity(Main.getInstance(), player, () -> {
+                    InventoryView inventoryView = player.openInventory(holder.getInventory());
+                    if(holder.getInventoryBackgrounding() != null) {
+                        inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+                    }else {
+                        //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
+                    }
+                    holders.put(player, holder);
+                }, null);
+            });
         } else {
             holder.loadContainer(0, container.clone(), true);
             InventoryView inventoryView = player.openInventory(holder.getInventory());
@@ -166,24 +157,18 @@ public abstract class GennarioGUI implements Listener {
 
 
             if(settings.getOpenMethod().equals(GUISettings.OpenMethod.ASYNC)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        holder.loadContainer(0, container.clone(), false);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                InventoryView inventoryView = player.openInventory(holder.getInventory());
-                                if(holder.getInventoryBackgrounding() != null) {
-                                    inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
-                                }else {
-                                    //inventoryView.setTitle(holder.getTitle().toString());
-                                    //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
-                                }
-                            }
-                        }.runTask(Main.getInstance());
-                    }
-                }.runTaskAsynchronously(Main.getInstance());
+                FoliaScheduler.runAsync(Main.getInstance(), () -> {
+                    holder.loadContainer(0, container.clone(), false);
+                    FoliaScheduler.runForEntity(Main.getInstance(), player, () -> {
+                        InventoryView inventoryView = player.openInventory(holder.getInventory());
+                        if(holder.getInventoryBackgrounding() != null) {
+                            inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+                        }else {
+                            //inventoryView.setTitle(holder.getTitle().toString());
+                            //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
+                        }
+                    }, null);
+                });
             } else {
                 holder.loadContainer(0, container.clone(), false);
                 InventoryView inventoryView = player.openInventory(holder.getInventory());//player.openInventory(holder.getInventory());
@@ -247,12 +232,9 @@ public abstract class GennarioGUI implements Listener {
                         if(settings.getCloseAllowed().contains(player)) {
                             settings.getCloseAllowed().remove(player);
                         }else {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    open(player);
-                                }
-                            }.runTaskLater(Main.getInstance(), settings.getReopenDelay());
+                            FoliaScheduler.runForEntityLater(Main.getInstance(), player, () -> {
+                                open(player);
+                            }, null, settings.getReopenDelay());
                         }
                     }
                 }

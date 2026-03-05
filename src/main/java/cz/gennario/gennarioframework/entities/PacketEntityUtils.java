@@ -5,11 +5,11 @@ import cz.gennario.gennarioframework.entities.types.EntityInteraction;
 import cz.gennario.gennarioframework.entities.types.EntityItemDisplay;
 import cz.gennario.gennarioframework.entities.types.EntityTextDisplay;
 import cz.gennario.gennarioframework.entities.types.hologram.EntityHologram;
+import cz.gennario.gennarioframework.utils.FoliaScheduler;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +20,7 @@ public final class PacketEntityUtils {
     private JavaPlugin plugin;
     private final Map<Integer, PacketEntity> entities;
 
-    private BukkitRunnable ticker;
+    private FoliaScheduler.WrappedTask ticker;
 
     public PacketEntityUtils(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -90,59 +90,54 @@ public final class PacketEntityUtils {
     }
 
     private void startTicker() {
-        ticker = new BukkitRunnable() {
-            int updateCount = 0;
+        final int[] updateCount = {0};
+        ticker = FoliaScheduler.runSyncTimer(plugin, () -> {
+            synchronized (entities) {
+                entities.forEach((integer, packetEntity) -> {
+                    Location location = packetEntity.getLocation().clone();
+                    location.setY(0);
 
-            @Override
-            public void run() {
-                synchronized (entities) {
-                    entities.forEach((integer, packetEntity) -> {
-                        Location location = packetEntity.getLocation().clone();
-                        location.setY(0);
-
-                        for (Player player : location.getWorld().getPlayers()) {
-                            if (packetEntity.getEntityVisiblity() == PacketEntity.EntityVisiblity.PRIVATE) {
-                                if (!packetEntity.getVisiblityList().contains(player.getName())) {
-                                    continue;
-                                }
-                            }
-
-                            Location clone = player.getLocation().clone();
-                            clone.setY(0);
-
-                            if (packetEntity.getSpawnedPlayers().contains(player)) {
-                                if (packetEntity.isUpdate()) {
-                                    if (updateCount % packetEntity.getUpdateTime() == 0) {
-                                        packetEntity.update(player);
-                                    }
-                                }
-
-                                if (location.distance(clone) > packetEntity.getViewDistance()) {
-                                    packetEntity.destroy(player);
-                                }
-
-                                if(packetEntity.getPacketVisiblityCondition() != null) {
-                                    if (!packetEntity.getPacketVisiblityCondition().canSee(player)) {
-                                        packetEntity.destroy(player);
-                                        return;
-                                    }
-                                }
+                    for (Player player : location.getWorld().getPlayers()) {
+                        if (packetEntity.getEntityVisiblity() == PacketEntity.EntityVisiblity.PRIVATE) {
+                            if (!packetEntity.getVisiblityList().contains(player.getName())) {
                                 continue;
                             }
-
-                            if (location.distance(clone) <= packetEntity.getViewDistance()) {
-                                packetEntity.spawn(player);
-                            }
                         }
-                    });
 
-                    updateCount++;
-                    if (updateCount >= 20000)
-                        updateCount = 0;
-                }
+                        Location clone = player.getLocation().clone();
+                        clone.setY(0);
+
+                        if (packetEntity.getSpawnedPlayers().contains(player)) {
+                            if (packetEntity.isUpdate()) {
+                                if (updateCount[0] % packetEntity.getUpdateTime() == 0) {
+                                    packetEntity.update(player);
+                                }
+                            }
+
+                            if (location.distance(clone) > packetEntity.getViewDistance()) {
+                                packetEntity.destroy(player);
+                            }
+
+                            if(packetEntity.getPacketVisiblityCondition() != null) {
+                                if (!packetEntity.getPacketVisiblityCondition().canSee(player)) {
+                                    packetEntity.destroy(player);
+                                    return;
+                                }
+                            }
+                            continue;
+                        }
+
+                        if (location.distance(clone) <= packetEntity.getViewDistance()) {
+                            packetEntity.spawn(player);
+                        }
+                    }
+                });
+
+                updateCount[0]++;
+                if (updateCount[0] >= 20000)
+                    updateCount[0] = 0;
             }
-        };
-        ticker.runTaskTimerAsynchronously(plugin, 0, 1);
+        }, 0, 1);
     }
 
 }

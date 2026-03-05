@@ -10,6 +10,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import cz.gennario.gennarioframework.utils.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -40,7 +41,7 @@ public class WorldManagerImpl implements WorldManager {
     @Override
     public CompletableFuture<World> loadWorldAsync(WorldConfig config) {
         CompletableFuture<World> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        FoliaScheduler.runSync(plugin, () -> {
             try {
                 String name = config.getName();
                 if (loadedWorlds.containsKey(name)) {
@@ -68,7 +69,7 @@ public class WorldManagerImpl implements WorldManager {
     }
 
     private void pasteSchematicAsync(World world, File schematicFile, Location location) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        FoliaScheduler.runAsync(plugin, () -> {
             try (FileInputStream fis = new FileInputStream(schematicFile)) {
                 ClipboardReader reader = ClipboardFormats.findByFile(schematicFile).getReader(fis);
                 Clipboard clipboard = reader.read();
@@ -94,11 +95,11 @@ public class WorldManagerImpl implements WorldManager {
     @Override
     public CompletableFuture<Void> deleteWorldAsync(String worldName) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        FoliaScheduler.runSync(plugin, () -> {
             World world = loadedWorlds.remove(worldName);
             if (world != null) {
                 Bukkit.unloadWorld(world, false);
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                FoliaScheduler.runAsync(plugin, () -> {
                     try {
                         Path worldDir = world.getWorldFolder().toPath();
                         Files.walk(worldDir)

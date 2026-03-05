@@ -34,6 +34,21 @@ public final class PacketUtils {
     public static final Map<Integer, PacketClickResponse> entityClickMap = new HashMap<>();
 
     public static void init() {
+        // Pre-warm serializer cache and log results for debugging
+        for (Class<?> c : new Class<?>[]{
+                Byte.class, Integer.class, Float.class, String.class,
+                org.joml.Vector3f.class, org.joml.Quaternionf.class
+        }) {
+            try {
+                WrappedDataWatcher.Serializer s = resolveSerializer(c);
+                if (s == null) {
+                    Main.getInstance().getLogger().warning("[PacketUtils] Failed to resolve serializer for: " + c.getSimpleName());
+                }
+            } catch (Exception e) {
+                Main.getInstance().getLogger().warning("[PacketUtils] Exception resolving serializer for: " + c.getSimpleName() + " - " + e.getMessage());
+            }
+        }
+
         protocolManager.addPacketListener(new PacketAdapter(
                 PacketAdapter.params(Main.getInstance(), PacketType.Play.Client.USE_ENTITY)
                         .optionAsync()) {
@@ -167,18 +182,189 @@ public final class PacketUtils {
             return packet;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return applyMetadata(entityId, watcher);
+            return null;
         }
     }
 
     public static WrappedDataWatcher setMetadata(WrappedDataWatcher watcher, int index, Class<?> c, Object value) {
         try {
-            watcher.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(index, WrappedDataWatcher.Registry.get(c)), value);
+            WrappedDataWatcher.Serializer serializer = resolveSerializer(c);
+            if (serializer == null) {
+                if (debug) Main.getInstance().getLogger().warning("[PacketUtils] Serializer is null for type: " + c.getName() + " at index " + index);
+                return watcher;
+            }
+            watcher.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(index, serializer), value);
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return setMetadata(watcher, index, c, value);
         }
         return watcher;
+    }
+
+    /**
+     * Resolves a WrappedDataWatcher serializer for the given class.
+     * Uses multiple fallback strategies for compatibility across ProtocolLib and MC versions.
+     */
+    private static final Map<Class<?>, WrappedDataWatcher.Serializer> SERIALIZER_CACHE = new HashMap<>();
+
+    private static WrappedDataWatcher.Serializer resolveSerializer(Class<?> c) {
+        WrappedDataWatcher.Serializer cached = SERIALIZER_CACHE.get(c);
+        if (cached != null) return cached;
+
+        WrappedDataWatcher.Serializer serializer = resolveSerializerInternal(c);
+        if (serializer != null) {
+            SERIALIZER_CACHE.put(c, serializer);
+        }
+        return serializer;
+    }
+
+    private static WrappedDataWatcher.Serializer resolveSerializerInternal(Class<?> c) {
+        // Strategy 1: Standard Registry.get(Class)
+        try {
+            return WrappedDataWatcher.Registry.get(c);
+        } catch (Exception ignored) {
+        }
+
+        // Strategy 2: Registry.get(Class, boolean) with optional=false
+        try {
+            return WrappedDataWatcher.Registry.get(c, false);
+        } catch (Exception ignored) {
+        }
+
+        // Strategy 3: For JOML Vector3f - use NMS EntityDataSerializers via reflection
+        if (c == org.joml.Vector3f.class) {
+            // Try known field names across different MC versions/mappings
+            for (String name : new String[]{"VECTOR3", "ROTATIONS", "o", "p", "q"}) {
+                try {
+                    return getSerializerFromNMS(name);
+                } catch (Exception ignored) {
+                }
+            }
+            // Try finding by iterating all serializer fields
+            try {
+                WrappedDataWatcher.Serializer s = findSerializerByType(org.joml.Vector3f.class);
+                if (s != null) return s;
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Strategy 4: For JOML Quaternionf - use NMS EntityDataSerializers via reflection
+        if (c == org.joml.Quaternionf.class) {
+            for (String name : new String[]{"QUATERNION", "r", "s"}) {
+                try {
+                    return getSerializerFromNMS(name);
+                } catch (Exception ignored) {
+                }
+            }
+            try {
+                WrappedDataWatcher.Serializer s = findSerializerByType(org.joml.Quaternionf.class);
+                if (s != null) return s;
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Strategy 5: Brute force - iterate all NMS serializers and find one matching the class
+        try {
+            return findSerializerByBruteForce(c);
+        } catch (Exception ignored) {
+        }
+
+        Main.getInstance().getLogger().warning("[PacketUtils] Cannot resolve serializer for type: " + c.getName());
+        return null;
+    }
+
+    /**
+     * Tries to get a serializer from NMS EntityDataSerializers by field name via reflection.
+     */
+    private static WrappedDataWatcher.Serializer getSerializerFromNMS(String fieldName) throws Exception {
+        // Try net.minecraft.network.syncher.EntityDataSerializers
+        Class<?> nmsClass;
+        try {
+            nmsClass = Class.forName("net.minecraft.network.syncher.EntityDataSerializers");
+        } catch (ClassNotFoundException e) {
+            // Legacy path
+            nmsClass = Class.forName("net.minecraft.server." + getServerVersion() + ".DataWatcherRegistry");
+        }
+
+        java.lang.reflect.Field field = nmsClass.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        Object nmsSerializer = field.get(null);
+        return WrappedDataWatcher.Registry.fromHandle(nmsSerializer);
+    }
+
+    private static String getServerVersion() {
+        String packageName = org.bukkit.Bukkit.getServer().getClass().getPackage().getName();
+        String[] parts = packageName.split("\\.");
+        return parts.length > 3 ? parts[3] : "";
+    }
+
+    /**
+     * Finds a serializer by checking each NMS EntityDataSerializers field's generic type parameter.
+     * This works even when field names are obfuscated, because it inspects the serializer's actual type.
+     */
+    private static WrappedDataWatcher.Serializer findSerializerByType(Class<?> targetClass) throws Exception {
+        Class<?> nmsClass;
+        try {
+            nmsClass = Class.forName("net.minecraft.network.syncher.EntityDataSerializers");
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+
+        for (java.lang.reflect.Field field : nmsClass.getDeclaredFields()) {
+            if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+            field.setAccessible(true);
+            Object value = field.get(null);
+            if (value == null) continue;
+
+            // Check the generic type parameter of EntityDataSerializer<T>
+            java.lang.reflect.Type genericType = field.getGenericType();
+            if (genericType instanceof java.lang.reflect.ParameterizedType pt) {
+                java.lang.reflect.Type[] typeArgs = pt.getActualTypeArguments();
+                if (typeArgs.length > 0 && typeArgs[0] instanceof Class<?> typeArg) {
+                    if (typeArg == targetClass) {
+                        try {
+                            return WrappedDataWatcher.Registry.fromHandle(value);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Brute force: iterate all fields of EntityDataSerializers and find a serializer
+     * whose type matches the given class by name comparison.
+     */
+    private static WrappedDataWatcher.Serializer findSerializerByBruteForce(Class<?> targetClass) throws Exception {
+        Class<?> nmsClass;
+        try {
+            nmsClass = Class.forName("net.minecraft.network.syncher.EntityDataSerializers");
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+
+        for (java.lang.reflect.Field field : nmsClass.getDeclaredFields()) {
+            if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+                Object value = field.get(null);
+                if (value != null) {
+                    try {
+                        WrappedDataWatcher.Serializer wrapped = WrappedDataWatcher.Registry.fromHandle(value);
+                        // Check if this serializer handles our target class by trying to use it
+                        if (wrapped != null) {
+                            String serializerStr = wrapped.toString().toLowerCase();
+                            String targetName = targetClass.getSimpleName().toLowerCase();
+                            if (serializerStr.contains(targetName)) {
+                                return wrapped;
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static WrappedDataWatcher setMetadata(WrappedDataWatcher watcher, int index, WrappedDataWatcher.Serializer serializer, Object value) {
@@ -186,7 +372,6 @@ public final class PacketUtils {
             watcher.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(index, serializer), value);
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return setMetadata(watcher, index, serializer, value);
         }
         return watcher;
     }
@@ -224,7 +409,7 @@ public final class PacketUtils {
             return packet;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return getEquipmentPacket(entityId, items);
+            return null;
         }
     }
 
@@ -261,7 +446,7 @@ public final class PacketUtils {
             return packet;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return teleportEntityPacket(entityID, location);
+            return null;
         }
     }
 
@@ -304,7 +489,7 @@ public final class PacketUtils {
             return pc;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return getHeadRotatePacket(entityId, location);
+            return null;
         }
     }
 
@@ -319,7 +504,7 @@ public final class PacketUtils {
             return pc;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
-            return getHeadLookPacket(entityId, location);
+            return null;
         }
     }
 

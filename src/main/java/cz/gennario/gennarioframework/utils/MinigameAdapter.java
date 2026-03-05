@@ -1,5 +1,6 @@
 package cz.gennario.gennarioframework.utils;
 
+import cz.gennario.gennarioframework.utils.FoliaScheduler;
 import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -52,9 +53,11 @@ public abstract class MinigameAdapter implements Listener {
         player.setFoodLevel(20);
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
         if (gameSpawns.length > 1) {
-            player.teleport(gameSpawns[new Random().nextInt(gameSpawns.length)]);
+            FoliaScheduler.runForEntity(plugin, player, () ->
+                player.teleport(gameSpawns[new Random().nextInt(gameSpawns.length)]), null);
         } else {
-            player.teleport(gameSpawns[0]);
+            FoliaScheduler.runForEntity(plugin, player, () ->
+                player.teleport(gameSpawns[0]), null);
         }
 
         for (Player other : Bukkit.getOnlinePlayers()) {
@@ -94,7 +97,9 @@ public abstract class MinigameAdapter implements Listener {
         }
 
         if (previousLocations.containsKey(uuid)) {
-            player.teleport(previousLocations.get(uuid));
+            Location previousLoc = previousLocations.get(uuid);
+            FoliaScheduler.runForEntity(plugin, player, () ->
+                player.teleport(previousLoc), null);
             previousLocations.remove(uuid);
         }
 

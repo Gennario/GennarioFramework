@@ -5,7 +5,6 @@ import cz.gennario.gennarioframework.Main;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
@@ -22,31 +21,28 @@ public final class ShootParticle {
         if (random) location.setYaw(Particles.randInt(0, 360));
 
         List<Location> locations = BezierCurveUtil.bezierCurveDisplay2(location, location.clone().add(location.getDirection().multiply(pointDistance)), offset, amount);
-        new BukkitRunnable() {
-            int i = 0;
-
-            @Override
-            public void run() {
-                Location remove = locations.remove(0);
-                if (remove != null) {
-                    if (dustOptions != null) {
-                        for (Player player : players) {
-                            player.spawnParticle(particle, remove, 1, dustOptions);
-                        }
-                    } else {
-                        for (Player player : players) {
-                            player.spawnParticle(particle, remove, 1);
-                        }
+        final int[] i = {0};
+        final FoliaScheduler.WrappedTask[] taskHolder = new FoliaScheduler.WrappedTask[1];
+        taskHolder[0] = FoliaScheduler.runSyncTimer(Main.getInstance(), () -> {
+            Location remove = locations.remove(0);
+            if (remove != null) {
+                if (dustOptions != null) {
+                    for (Player player : players) {
+                        player.spawnParticle(particle, remove, 1, dustOptions);
+                    }
+                } else {
+                    for (Player player : players) {
+                        player.spawnParticle(particle, remove, 1);
                     }
                 }
-
-                if (i >= pointDistance) {
-                    cancel();
-                }
-
-                i++;
             }
-        }.runTaskTimer(Main.getInstance(), 0, 1);
+
+            if (i[0] >= pointDistance) {
+                if (taskHolder[0] != null) taskHolder[0].cancel();
+            }
+
+            i[0]++;
+        }, 0, 1);
     }
 
 }

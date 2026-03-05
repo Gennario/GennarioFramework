@@ -1,0 +1,121 @@
+# ============================================
+# Example Crate Configuration
+# This file demonstrates the structure expected
+# by the CrateEditorExample
+# ============================================
+
+# Global settings
+settings:
+  enabled: true
+  debug: false
+  cooldown: 5
+  prefix: "<gradient:#00c6ff:#0072ff>[Crates]</gradient> "
+  disabled-worlds:
+    - "world_nether"
+    - "world_the_end"
+
+# Crate definitions
+crates:
+  # Basic crate example
+  basic:
+    name: "<yellow>Basic Crate"
+    enabled: true
+    animation: SPIN
+    open-message: "<green>You opened a <yellow>Basic Crate<green>!"
+    key-item:
+      material: TRIPWIRE_HOOK
+      name: "<yellow>Basic Key"
+      lore:
+        - ""
+        - "<gray>Use this key to open"
+        - "<yellow>Basic Crate"
+        - ""
+        - "<dark_gray>Right-click a crate to use"
+    rewards:
+      diamond_reward:
+        item:
+          material: DIAMOND
+          amount: 1
+          name: "<aqua>Shiny Diamond"
+        chance: 10
+        broadcast: "<gold>%player% <yellow>won a <aqua>Diamond<yellow>!"
+      emerald_reward:
+        item:
+          material: EMERALD
+          amount: 5
+        chance: 25
+      gold_reward:
+        item:
+          material: GOLD_INGOT
+          amount: 10
+        chance: 40
+      iron_reward:
+        item:
+          material: IRON_INGOT
+          amount: 16
+        chance: 60
+
+  # Legendary crate example
+  legendary:
+    name: "<gradient:#FFD700:#FFA500><bold>Legendary Crate</bold></gradient>"
+    enabled: true
+    animation: CSGO
+    open-message: "<gold>✦ <yellow>You opened a <gradient:#FFD700:#FFA500>Legendary Crate</gradient><yellow>! <gold>✦"
+    key-item:
+      material: TRIPWIRE_HOOK
+      name: "<gradient:#FFD700:#FFA500>Legendary Key</gradient>"
+      lore:
+        - ""
+        - "<gray>A rare and powerful key"
+        - ""
+        - "<gold>✦ <yellow>Opens Legendary Crate <gold>✦"
+      enchanted: true
+      custom-model-data: 1001
+    rewards:
+      netherite_sword:
+        item:
+          material: NETHERITE_SWORD
+          name: "<gradient:#FF4500:#FF6347>Flame Blade</gradient>"
+          lore:
+            - ""
+            - "<red>A blade forged in fire"
+            - ""
+            - "<gray>Damage: <white>+12"
+          enchanted: true
+        chance: 5
+        broadcast: "<gradient:#FFD700:#FFA500>★ LEGENDARY! ★</gradient> <white>%player% <yellow>found a <gradient:#FF4500:#FF6347>Flame Blade</gradient>!"
+      diamond_block:
+        item:
+          material: DIAMOND_BLOCK
+          amount: 3
+        chance: 15
+      emerald_block:
+        item:
+          material: EMERALD_BLOCK
+          amount: 5
+        chance: 25
+
+  # Vote crate example
+  vote:
+    name: "<green>Vote Crate"
+    enabled: true
+    animation: WHEEL
+    open-message: "<green>Thanks for voting! Here's your reward!"
+    key-item:
+      material: TRIPWIRE_HOOK
+      name: "<green>Vote Key"
+      lore:
+        - "<gray>Obtained by voting"
+    rewards:
+      vote_token:
+        item:
+          material: SUNFLOWER
+          name: "<yellow>Vote Token"
+          amount: 5
+        chance: 50
+      experience:
+        command: "xp give %player% 500"
+        chance: 30
+      money:
+        command: "eco give %player% 1000"
+        chance: 40
