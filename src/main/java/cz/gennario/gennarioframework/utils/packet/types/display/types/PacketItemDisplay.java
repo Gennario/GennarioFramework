@@ -1,11 +1,13 @@
 package cz.gennario.gennarioframework.utils.packet.types.display.types;
 
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import cz.gennario.gennarioframework.Main;
+import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
+import cz.gennario.gennarioframework.utils.packet.backend.PacketBackendMode;
 import cz.gennario.gennarioframework.utils.packet.types.display.PacketDisplay;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
@@ -27,6 +29,37 @@ public class PacketItemDisplay extends PacketDisplay {
         super();
     }
 
+    @Override
+    public void teleport(Player player, Location location) {
+        if (shouldRespawnForTeleport()) {
+            respawnAt(player, location);
+            return;
+        }
+        super.teleport(player, location);
+    }
+
+    @Override
+    public void teleportWithoutOverwrite(Player player, Location location) {
+        if (shouldRespawnForTeleport()) {
+            respawnAt(player, location);
+            return;
+        }
+        super.teleportWithoutOverwrite(player, location);
+    }
+
+    private boolean shouldRespawnForTeleport() {
+        // Respawn workaround causes visible flicker; keep it only for ProtocolLib path.
+        return Utils.versionIsAfterOrEqual(21, 2)
+                && PacketUtils.getActiveBackendMode() == PacketBackendMode.PROTOCOLLIB;
+    }
+
+    private void respawnAt(Player player, Location location) {
+        setLocation(location.clone());
+        PacketUtils.sendPacket(player, PacketUtils.destroyEntityPacket(getEntityId()));
+        WrappedDataWatcher dataWatcher = getDisplay(player, EntityType.ITEM_DISPLAY);
+        update(player, dataWatcher);
+    }
+
     public void spawn(Player player) {
         /* DATA WATCHER */
         WrappedDataWatcher dataWatcher = getDisplay(player, EntityType.ITEM_DISPLAY);
@@ -39,8 +72,8 @@ public class PacketItemDisplay extends PacketDisplay {
     }
 
     private void update(Player player, WrappedDataWatcher dataWatcher) {
-        if (itemStack != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), WrappedDataWatcher.Registry.getItemStackSerializer(false), itemStack);
-        if (itemDisplayTransform != null) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(), Byte.class, getPacketItemDisplayTransform(itemDisplayTransform));
+        if (itemStack != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), WrappedDataWatcher.Registry.getItemStackSerializer(false), itemStack);
+        if (itemDisplayTransform != null) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(player), Byte.class, getPacketItemDisplayTransform(itemDisplayTransform));
 
         /* SEND PACKET */
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
@@ -87,7 +120,7 @@ public class PacketItemDisplay extends PacketDisplay {
 
     public PacketItemDisplay updateItemStack(Player player, ItemStack itemStack) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (itemStack != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), WrappedDataWatcher.Registry.getItemStackSerializer(false), itemStack);
+        if (itemStack != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), WrappedDataWatcher.Registry.getItemStackSerializer(false), itemStack);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -102,7 +135,7 @@ public class PacketItemDisplay extends PacketDisplay {
 
     public PacketItemDisplay updateItemDisplayTransform(Player player, ItemDisplay.ItemDisplayTransform itemDisplayTransform) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (itemDisplayTransform != null) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(), Byte.class, getPacketItemDisplayTransform(itemDisplayTransform));
+        if (itemDisplayTransform != null) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(player), Byte.class, getPacketItemDisplayTransform(itemDisplayTransform));
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -120,8 +153,7 @@ public class PacketItemDisplay extends PacketDisplay {
     }
 
     public int versionOverwrite() {
-        if(Main.getInstance().isVersionAdapter()) return -1;
-        return 0;
+        return PacketUtils.getDisplayMetadataOffset();
     }
 
 }

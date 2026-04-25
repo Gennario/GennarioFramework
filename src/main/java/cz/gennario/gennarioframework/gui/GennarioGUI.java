@@ -5,12 +5,15 @@ import cz.gennario.gennarioframework.gui.containers.GUIPagedContainer;
 import cz.gennario.gennarioframework.gui.utils.ClickData;
 import cz.gennario.gennarioframework.gui.utils.InventoryBackgrounding;
 import cz.gennario.gennarioframework.utils.FoliaScheduler;
+import cz.gennario.gennarioframework.utils.Utils;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.InventoryView;
@@ -32,6 +35,12 @@ public abstract class GennarioGUI implements Listener {
     private GUISettings settings;
 
     private String backgroundingData;
+    @Setter
+    private boolean allowUpdateTitle;
+
+    // NEW: stav + handle na periodicky update
+    private boolean unregistered = false;
+    private FoliaScheduler.WrappedTask autoUpdateTask;
 
     public GennarioGUI(String title, int rows) {
         this.holders = new HashMap<>();
@@ -85,16 +94,6 @@ public abstract class GennarioGUI implements Listener {
     public abstract void onOpen(InventoryOpenEvent event);
     public abstract void onClose(InventoryCloseEvent event);
 
-    public void autoUpdate(int time) {
-        FoliaScheduler.runSyncTimer(Main.getInstance(), () -> {
-            for (Player player : holders.keySet()) {
-                if(player.getOpenInventory().getTopInventory().equals(holders.get(player).getInventory())) {
-                    update(player, false);
-                }
-            }
-        }, 0, time);
-    }
-
     public void open(Player player) {
         if(holders.containsKey(player)) {
             update(player, true);
@@ -114,6 +113,10 @@ public abstract class GennarioGUI implements Listener {
                     InventoryView inventoryView = player.openInventory(holder.getInventory());
                     if(holder.getInventoryBackgrounding() != null) {
                         inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+                    }else if (allowUpdateTitle) {
+                        if (holders.containsKey(player) && holders.get(player).getTitle() != null) {
+                            inventoryView.setTitle(holders.get(player).getTitle().toString());
+                        }
                     }else {
                         //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
                     }
@@ -125,6 +128,10 @@ public abstract class GennarioGUI implements Listener {
             InventoryView inventoryView = player.openInventory(holder.getInventory());
             if(holder.getInventoryBackgrounding() != null) {
                 inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+            }else if (allowUpdateTitle) {
+                if (holders.containsKey(player) && holders.get(player).getTitle() != null) {
+                    inventoryView.setTitle(holders.get(player).getTitle().toString());
+                }
             }else {
                 inventoryView.setTitle(holder.getTitle().toString());
                 //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
@@ -163,6 +170,10 @@ public abstract class GennarioGUI implements Listener {
                         InventoryView inventoryView = player.openInventory(holder.getInventory());
                         if(holder.getInventoryBackgrounding() != null) {
                             inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+                        }else if (allowUpdateTitle) {
+                            if (holders.containsKey(player) && holders.get(player).getTitle() != null) {
+                                inventoryView.setTitle(holders.get(player).getTitle().toString());
+                            }
                         }else {
                             //inventoryView.setTitle(holder.getTitle().toString());
                             //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
@@ -174,6 +185,10 @@ public abstract class GennarioGUI implements Listener {
                 InventoryView inventoryView = player.openInventory(holder.getInventory());//player.openInventory(holder.getInventory());
                 if(holder.getInventoryBackgrounding() != null) {
                     inventoryView.setTitle(holder.getInventoryBackgrounding().generateBackground());
+                }else if (allowUpdateTitle) {
+                    if (holders.containsKey(player) && holders.get(player).getTitle() != null) {
+                        inventoryView.setTitle(holders.get(player).getTitle().toString());
+                    }
                 }else {
                     //inventoryView.setTitle(holder.getTitle().toString());
                     //inventoryView.title().replaceText(TextReplacementConfig.builder().replacement(holder.getTitle()).build());
@@ -185,10 +200,61 @@ public abstract class GennarioGUI implements Listener {
     public void updatePlayerTitle(Player player, Component title) {
         GGUIHolder gguiHolder = holders.get(player);
         gguiHolder.setTitle(title);
+        update(player);
     }
 
     public void allowBackgrounding(String prebackground, String title) {
         backgroundingData = prebackground + ":---:" + title;
+    }
+
+
+    public void autoUpdate(int time) {
+        if (unregistered) return;
+
+        if (autoUpdateTask != null && !autoUpdateTask.isCancelled()) {
+            autoUpdateTask.cancel();
+        }
+
+        autoUpdateTask = FoliaScheduler.runSyncTimer(Main.getInstance(), () -> {
+            if (unregistered) return;
+            for (Player player : holders.keySet()) {
+                if (player.getOpenInventory().getTopInventory().equals(holders.get(player).getInventory())) {
+                    update(player, false);
+                }
+            }
+        }, 0, time);
+    }
+
+    public void unregister() {
+        if (unregistered) return;
+        unregistered = true;
+
+        if (autoUpdateTask != null && !autoUpdateTask.isCancelled()) {
+            autoUpdateTask.cancel();
+        }
+
+        Map<Player, GGUIHolder> snapshot = new HashMap<>(holders);
+        for (Map.Entry<Player, GGUIHolder> entry : snapshot.entrySet()) {
+            Player player = entry.getKey();
+            GGUIHolder holder = entry.getValue();
+
+            settings.getCloseAllowed().add(player);
+
+            if (holder.getInventoryBackgrounding() != null) {
+                holder.getInventoryBackgrounding().clear();
+            }
+            holder.clearClickEventsCache(player);
+
+            if (player.isOnline() &&
+                    player.getOpenInventory().getTopInventory().equals(holder.getInventory())) {
+                FoliaScheduler.runForEntity(Main.getInstance(), player, player::closeInventory, null);
+            }
+        }
+
+        holders.clear();
+        settings.getCloseAllowed().clear();
+
+        HandlerList.unregisterAll(this);
     }
 
     @EventHandler
@@ -223,6 +289,8 @@ public abstract class GennarioGUI implements Listener {
 
     @EventHandler
     public void onCloseInv(InventoryCloseEvent event) {
+        if (unregistered) return;
+
         if(event.getPlayer() instanceof Player player) {
             if (holders.containsKey(player)) {
                 GGUIHolder holder = holders.get(player);

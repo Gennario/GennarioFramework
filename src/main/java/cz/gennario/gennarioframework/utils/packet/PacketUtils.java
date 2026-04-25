@@ -3,19 +3,24 @@ package cz.gennario.gennarioframework.utils.packet;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.scheduler.ProtocolScheduler;
+import com.comphenix.protocol.scheduler.Task;
+import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.events.InternalStructure;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.Utils;
+import cz.gennario.gennarioframework.utils.packet.backend.PacketBackend;
+import cz.gennario.gennarioframework.utils.packet.backend.PacketBackendMode;
+import cz.gennario.gennarioframework.utils.packet.backend.PacketEventsPacketBackend;
+import cz.gennario.gennarioframework.utils.packet.backend.ProtocolLibPacketBackend;
 import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
-import cz.gennario.gennarioframework.utils.packet.click.PacketClickType;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -28,12 +33,209 @@ import java.util.*;
 public final class PacketUtils {
 
     private static final boolean debug = false;
-    public static final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-    public static final int MINECRAFT_VERSION = ProtocolLibrary.getProtocolManager().getMinecraftVersion().getMinor();
+    public static ProtocolManager protocolManager;
+    public static int MINECRAFT_VERSION = -1;
+    private static final int CLIENT_PROTOCOL_1_20 = 763;
+    private static boolean loggedDisplayAdapterOverride = false;
+    private static PacketBackendMode activeBackendMode = PacketBackendMode.PROTOCOLLIB;
+    private static boolean backendFallbackEnabled = true;
+    private static PacketBackendMode autoPriorityMode = PacketBackendMode.PROTOCOLLIB;
+    private static final Map<PacketBackendMode, PacketBackend> BACKENDS = new EnumMap<>(PacketBackendMode.class);
+    private static PacketBackend activeBackend;
+    private static boolean loggedProtocolLibUnavailable = false;
+    private static boolean protocolLibSchedulerBootstrapped = false;
 
     public static final Map<Integer, PacketClickResponse> entityClickMap = new HashMap<>();
 
+    static {
+        BACKENDS.put(PacketBackendMode.PROTOCOLLIB, new ProtocolLibPacketBackend());
+        BACKENDS.put(PacketBackendMode.PACKETEVENTS, new PacketEventsPacketBackend());
+        activeBackend = BACKENDS.get(PacketBackendMode.PROTOCOLLIB);
+        protocolManager = tryGetProtocolManager();
+        if (protocolManager != null) {
+            MINECRAFT_VERSION = protocolManager.getMinecraftVersion().getMinor();
+        }
+    }
+
+    private static ProtocolManager tryGetProtocolManager() {
+        try {
+            return ProtocolLibrary.getProtocolManager();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static ProtocolManager getProtocolManagerSafe() {
+        if (protocolManager == null) {
+            protocolManager = tryGetProtocolManager();
+            if (protocolManager != null) {
+                MINECRAFT_VERSION = protocolManager.getMinecraftVersion().getMinor();
+            }
+        }
+        return protocolManager;
+    }
+
+    private static PacketContainer createPacketSafe(PacketType type) {
+        try {
+            ProtocolManager manager = getProtocolManagerSafe();
+            if (manager != null) {
+                PacketContainer packet = manager.createPacket(type);
+                try {
+                    packet.getModifier().writeDefaults();
+                } catch (Exception ignored) {
+                    // Some packet types do not expose defaults in the same way across versions.
+                }
+
+                return packet;
+            }
+
+            ensureProtocolLibScheduler();
+
+            PacketContainer packet = new PacketContainer(type);
+            try {
+                packet.getModifier().writeDefaults();
+            } catch (Exception ignored) {
+                // Some packet types do not expose defaults in the same way across versions.
+            }
+
+            return packet;
+
+        } catch (Throwable ignored) {
+            if (!loggedProtocolLibUnavailable && Main.getInstance() != null) {
+                Main.getInstance().getLogger().warning("[PacketUtils] ProtocolLib manager is unavailable; packet creation via ProtocolLib internals is disabled.");
+                loggedProtocolLibUnavailable = true;
+            }
+            return null;
+        }
+    }
+
+    private static void ensureProtocolLibScheduler() {
+        if (protocolLibSchedulerBootstrapped) {
+            return;
+        }
+        protocolLibSchedulerBootstrapped = true;
+
+        try {
+            if (ProtocolLibrary.getScheduler() != null) {
+                return;
+            }
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            java.lang.reflect.Field schedulerField = ProtocolLibrary.class.getDeclaredField("scheduler");
+            schedulerField.setAccessible(true);
+
+            if (schedulerField.get(null) != null) {
+                return;
+            }
+
+            schedulerField.set(null, createSafeProtocolScheduler());
+        } catch (Throwable ignored) {
+            // Best-effort bootstrap only.
+        }
+    }
+
+    private static ProtocolScheduler createSafeProtocolScheduler() {
+        return new ProtocolScheduler() {
+            @Override
+            public Task scheduleSyncRepeatingTask(Runnable runnable, long delay, long period) {
+                int taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getInstance(), wrapSafe(runnable), delay, period);
+                return () -> Bukkit.getScheduler().cancelTask(taskId);
+            }
+
+            @Override
+            public Task runTask(Runnable runnable) {
+                int taskId = Bukkit.getScheduler().runTask(Main.getInstance(), wrapSafe(runnable)).getTaskId();
+                return () -> Bukkit.getScheduler().cancelTask(taskId);
+            }
+
+            @Override
+            public Task scheduleSyncDelayedTask(Runnable runnable, long delay) {
+                int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), wrapSafe(runnable), delay);
+                return () -> Bukkit.getScheduler().cancelTask(taskId);
+            }
+
+            @Override
+            public Task runTaskAsync(Runnable runnable) {
+                int taskId = Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), wrapSafe(runnable)).getTaskId();
+                return () -> Bukkit.getScheduler().cancelTask(taskId);
+            }
+        };
+    }
+
+    private static Runnable wrapSafe(Runnable runnable) {
+        return () -> {
+            try {
+                runnable.run();
+            } catch (IllegalStateException ex) {
+                String msg = ex.getMessage();
+                if (msg != null && msg.contains("Unexpected protocol: CONFIGURATION")) {
+                    return;
+                }
+                throw ex;
+            }
+        };
+    }
+
+    public static void configureBackend(PacketBackendMode requestedMode, boolean fallbackEnabled, PacketBackendMode autoPriority) {
+        backendFallbackEnabled = fallbackEnabled;
+        autoPriorityMode = (autoPriority == null || autoPriority == PacketBackendMode.AUTO)
+                ? PacketBackendMode.PROTOCOLLIB
+                : autoPriority;
+
+        PacketBackendMode mode = requestedMode == null ? PacketBackendMode.AUTO : requestedMode;
+        activeBackendMode = resolveBackend(mode);
+        activeBackend = BACKENDS.get(activeBackendMode);
+
+        if (Main.getInstance() != null) {
+            Main.getInstance().getLogger().info("[PacketUtils] Backend requested=" + mode + ", active=" + activeBackendMode + ", fallback=" + backendFallbackEnabled);
+        }
+    }
+
+    public static PacketBackendMode getActiveBackendMode() {
+        return activeBackendMode;
+    }
+
+    public static boolean isBackendFallbackEnabled() {
+        return backendFallbackEnabled;
+    }
+
+    private static PacketBackendMode resolveBackend(PacketBackendMode requestedMode) {
+        if (requestedMode == PacketBackendMode.AUTO) {
+            if (isBackendReady(autoPriorityMode)) return autoPriorityMode;
+            PacketBackendMode secondary = autoPriorityMode == PacketBackendMode.PROTOCOLLIB
+                    ? PacketBackendMode.PACKETEVENTS
+                    : PacketBackendMode.PROTOCOLLIB;
+            if (isBackendReady(secondary)) return secondary;
+            throw new IllegalStateException("No supported packet backend is available in AUTO mode.");
+        }
+
+        if (isBackendReady(requestedMode)) {
+            return requestedMode;
+        }
+
+        if (!backendFallbackEnabled) {
+            throw new IllegalStateException("Requested packet backend " + requestedMode + " is not available.");
+        }
+
+        if (requestedMode != PacketBackendMode.PROTOCOLLIB && isBackendReady(PacketBackendMode.PROTOCOLLIB)) {
+            Main.getInstance().getLogger().warning("[PacketUtils] Falling back to PROTOCOLLIB backend.");
+            return PacketBackendMode.PROTOCOLLIB;
+        }
+
+        throw new IllegalStateException("No usable packet backend found for mode " + requestedMode + ".");
+    }
+
+    private static boolean isBackendReady(PacketBackendMode mode) {
+        PacketBackend backend = BACKENDS.get(mode);
+        return backend != null && backend.isAvailable();
+    }
+
     public static void init() {
+        protocolManager = getProtocolManagerSafe();
+        Main.getInstance().getLogger().info("[PacketUtils] Active backend: " + activeBackendMode);
+
         // Pre-warm serializer cache and log results for debugging
         for (Class<?> c : new Class<?>[]{
                 Byte.class, Integer.class, Float.class, String.class,
@@ -49,55 +251,18 @@ public final class PacketUtils {
             }
         }
 
-        protocolManager.addPacketListener(new PacketAdapter(
-                PacketAdapter.params(Main.getInstance(), PacketType.Play.Client.USE_ENTITY)
-                        .optionAsync()) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketType().equals(PacketType.Play.Client.USE_ENTITY)) {
-                    event.setCancelled(false);
-                }
-            }
-        });
-
-        /* Interact event on entity */
-        protocolManager.addPacketListener(new PacketAdapter(Main.getInstance(), PacketType.Play.Client.USE_ENTITY) {
-            @Override
-            public void onPacketReceiving(PacketEvent e) {
-                PacketContainer packet = e.getPacket();
-                if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {
-                    int id = packet.getIntegers().read(0);
-                    if (!entityClickMap.containsKey(id)) return;
-
-                    List<PacketClickType> clickTypeList = new ArrayList<>();
-
-                    EnumWrappers.EntityUseAction action = Utils.versionIsAfter(16) ? packet.getEnumEntityUseActions().readSafely(0).getAction() : packet.getEntityUseActions().readSafely(0);
-                    boolean isShift = packet.getBooleans().readSafely(0);
-
-                    switch (action.compareTo(EnumWrappers.EntityUseAction.INTERACT)) {
-                        case 1:
-                            clickTypeList.add(isShift ? PacketClickType.SHIFT_LEFT : PacketClickType.LEFT);
-                            break;
-                        case 2:
-                            clickTypeList.add(isShift ? PacketClickType.SHIFT_RIGHT : PacketClickType.RIGHT);
-                            break;
-                        default:
-                            return;
-                    }
-
-                    PacketClickResponse packetClickResponse = entityClickMap.get(id);
-                    if (packetClickResponse == null) return;
-
-                    packetClickResponse.onClick(clickTypeList, e.getPlayer());
-                }
-            }
-        });
+        activeBackend.init();
     }
 
     public static void sendPacket(Player player, PacketContainer packet) {
+        if (packet == null) {
+            if (debug) Main.getInstance().getLogger().warning("[PacketUtils] Tried to send null packet to " + player.getName());
+            return;
+        }
         try {
-            protocolManager.sendServerPacket(player, packet);
+            activeBackend.sendPacket(player, packet);
         } catch (Exception e) {
+            Main.getInstance().getLogger().warning("[PacketUtils] Failed to send packet " + packet.getType() + " via backend " + activeBackendMode + ": " + e.getMessage());
             if (debug) e.printStackTrace();
         }
     }
@@ -107,7 +272,10 @@ public final class PacketUtils {
     }
 
     public static PacketContainer spawnEntityPacket(EntityType entityType, Location location, int entityId, Vector vector) {
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY);
+        PacketContainer packet = createPacketSafe(PacketType.Play.Server.SPAWN_ENTITY);
+        if (packet == null) {
+            return null;
+        }
 
         // Entity ID
         packet.getIntegers().write(0, entityId);
@@ -119,7 +287,7 @@ public final class PacketUtils {
             // Entity Type
             if (entityType.equals(EntityType.ARMOR_STAND)) {
                 packet.getIntegers().write(6, 78);
-            } else packet.getIntegers().write(6, (int) entityType.getTypeId());
+            }
 
             System.out.println("Entity type " + entityType + " is not supported by your server version!");
 
@@ -166,7 +334,7 @@ public final class PacketUtils {
 
     public static PacketContainer applyMetadata(int entityId, WrappedDataWatcher watcher) {
         try {
-            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+            PacketContainer packet = createPacketSafe(PacketType.Play.Server.ENTITY_METADATA);
             packet.getIntegers().write(0, entityId);
 
             try {
@@ -218,19 +386,7 @@ public final class PacketUtils {
     }
 
     private static WrappedDataWatcher.Serializer resolveSerializerInternal(Class<?> c) {
-        // Strategy 1: Standard Registry.get(Class)
-        try {
-            return WrappedDataWatcher.Registry.get(c);
-        } catch (Exception ignored) {
-        }
-
-        // Strategy 2: Registry.get(Class, boolean) with optional=false
-        try {
-            return WrappedDataWatcher.Registry.get(c, false);
-        } catch (Exception ignored) {
-        }
-
-        // Strategy 3: For JOML Vector3f - use NMS EntityDataSerializers via reflection
+        // Strategy 1: For JOML Vector3f - use NMS EntityDataSerializers via reflection
         if (c == org.joml.Vector3f.class) {
             // Try known field names across different MC versions/mappings
             for (String name : new String[]{"VECTOR3", "ROTATIONS", "o", "p", "q"}) {
@@ -247,7 +403,7 @@ public final class PacketUtils {
             }
         }
 
-        // Strategy 4: For JOML Quaternionf - use NMS EntityDataSerializers via reflection
+        // Strategy 2: For JOML Quaternionf - use NMS EntityDataSerializers via reflection
         if (c == org.joml.Quaternionf.class) {
             for (String name : new String[]{"QUATERNION", "r", "s"}) {
                 try {
@@ -262,7 +418,14 @@ public final class PacketUtils {
             }
         }
 
-        // Strategy 5: Brute force - iterate all NMS serializers and find one matching the class
+        // Strategy 3: Find serializer by generic type information.
+        try {
+            WrappedDataWatcher.Serializer byType = findSerializerByType(c);
+            if (byType != null) return byType;
+        } catch (Exception ignored) {
+        }
+
+        // Strategy 4: Brute force - iterate all NMS serializers and find one matching the class
         try {
             return findSerializerByBruteForce(c);
         } catch (Exception ignored) {
@@ -380,7 +543,7 @@ public final class PacketUtils {
         byte rotationYaw = (byte) (yaw * 256 / 360);
         byte rotationPitch = (byte) (pitch * 256 / 360);
 
-        PacketContainer entityLookPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_LOOK);
+        PacketContainer entityLookPacket = createPacketSafe(PacketType.Play.Server.ENTITY_LOOK);
         entityLookPacket.getIntegers().write(0, entityId);
         entityLookPacket.getBytes()
                 .write(0, rotationYaw)
@@ -390,7 +553,7 @@ public final class PacketUtils {
     }
 
     public static PacketContainer getEntityVelocity(int entityId, Vector vector) {
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_VELOCITY);
+        PacketContainer packet = createPacketSafe(PacketType.Play.Server.ENTITY_VELOCITY);
         packet.getIntegers().write(0, entityId);
         packet.getIntegers()
                 .write(1, convertVelocity(vector.getX()))
@@ -401,7 +564,7 @@ public final class PacketUtils {
 
     public static PacketContainer getEquipmentPacket(int entityId, Pair<EnumWrappers.ItemSlot, ItemStack>... items) {
         try {
-            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+            PacketContainer packet = createPacketSafe(PacketType.Play.Server.ENTITY_EQUIPMENT);
 
             packet.getIntegers().write(0, entityId);
             List<Pair<EnumWrappers.ItemSlot, ItemStack>> list = Arrays.asList(items);
@@ -414,40 +577,78 @@ public final class PacketUtils {
     }
 
     public static PacketContainer teleportEntityPacket(int entityID, Location location) {
-        // if minercaft version is higher than 1.21.1
-        if (Utils.versionIsAfterOrEqual(21, 2)) {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
-
-            packet.getIntegers().write(0, entityID);
-
-            InternalStructure is = packet.getStructures().getValues().get(0);
-
-            is.getVectors()
-                    .write(0, new Vector(location.getX(), location.getY(), location.getZ()))
-                    .write(1, new Vector(0, 0, 0));
-
-            is.getFloat()
-                    .write(0, location.getYaw())
-                    .write(1, location.getPitch());
-
-            return packet;
+        PacketContainer syncPacket = createPositionSyncPacket(entityID, location, new Vector(0, 0, 0), false);
+        if (syncPacket != null) {
+            return syncPacket;
         }
-        try {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
 
-            packet.getIntegers().write(0, entityID);
-            packet.getDoubles().write(0, location.getX())
-                    .write(1, location.getY())
-                    .write(2, location.getZ());
-            packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
-            packet.getBytes().write(1, (byte) (location.getPitch() * 256.0F / 360.0F));
-            packet.getBooleans().write(0, false);
+        return createLegacyTeleportPacket(entityID, location, false);
+    }
+
+    private static PacketContainer createLegacyTeleportPacket(int entityID, Location location, boolean onGround) {
+        try {
+            PacketContainer packet = createPacketSafe(PacketType.Play.Server.ENTITY_TELEPORT);
+            packet.getModifier().writeDefaults();
+
+            packet.getIntegers().writeSafely(0, entityID);
+            packet.getDoubles().writeSafely(0, location.getX());
+            packet.getDoubles().writeSafely(1, location.getY());
+            packet.getDoubles().writeSafely(2, location.getZ());
+            packet.getBytes().writeSafely(0, (byte) (location.getYaw() * 256.0F / 360.0F));
+            packet.getBytes().writeSafely(1, (byte) (location.getPitch() * 256.0F / 360.0F));
+            packet.getBooleans().writeSafely(0, onGround);
+            return packet;
+        } catch (Exception e) {
+            if (debug) e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static PacketContainer createPositionSyncPacket(int entityID, Location location, Vector velocity, boolean onGround) {
+        try {
+            PacketType syncType = getServerPacketType("ENTITY_POSITION_SYNC");
+            if (syncType == null) {
+                return null;
+            }
+
+            PacketContainer packet = createPacketSafe(syncType);
+            packet.getModifier().writeDefaults();
+
+            packet.getIntegers().writeSafely(0, entityID);
+
+            InternalStructure move = packet.getStructures().readSafely(0);
+            if (move != null) {
+                move.getVectors().writeSafely(0, new Vector(location.getX(), location.getY(), location.getZ()));
+                move.getVectors().writeSafely(1, velocity == null ? new Vector(0, 0, 0) : velocity);
+                // Position sync uses non-compressed angles (float degrees).
+                move.getFloat().writeSafely(0, location.getYaw());
+                move.getFloat().writeSafely(1, location.getPitch());
+            }
+
+            packet.getBooleans().writeSafely(0, onGround);
+
+            StructureModifier<Set> setModifier = packet.getModifier().withType(Set.class);
+            if (setModifier.size() > 0) {
+                setModifier.writeSafely(0, Collections.emptySet());
+            }
 
             return packet;
         } catch (Exception e) {
             if (debug) e.printStackTrace();
             return null;
         }
+    }
+
+    private static PacketType getServerPacketType(String fieldName) {
+        try {
+            java.lang.reflect.Field field = PacketType.Play.Server.class.getField(fieldName);
+            Object packetType = field.get(null);
+            if (packetType instanceof PacketType) {
+                return (PacketType) packetType;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     public static void teleportToLocation(Player player, Location location) {
@@ -464,7 +665,7 @@ public final class PacketUtils {
         try {
             List<Integer> entityIDList = new ArrayList<>();
             entityIDList.add(entityID);
-            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+            PacketContainer packet = createPacketSafe(PacketType.Play.Server.ENTITY_DESTROY);
             packet.getModifier().writeDefaults();
             try {
                 packet.getIntLists().write(0, entityIDList);
@@ -481,7 +682,7 @@ public final class PacketUtils {
 
     public static PacketContainer getHeadRotatePacket(int entityId, Location location) {
         try {
-            PacketContainer pc = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
+            PacketContainer pc = createPacketSafe(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
             pc.getModifier().writeDefaults();
             pc.getIntegers().write(0, entityId);
             pc.getBytes().write(0, (byte) getCompressedAngle(location.getYaw()));
@@ -495,7 +696,7 @@ public final class PacketUtils {
 
     public static PacketContainer getHeadLookPacket(int entityId, Location location) {
         try {
-            PacketContainer pc = protocolManager.createPacket(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
+            PacketContainer pc = createPacketSafe(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
             pc.getModifier().writeDefaults();
             pc.getIntegers().write(0, entityId);
             pc.getBytes().write(0, (byte) location.getYaw());
@@ -510,7 +711,7 @@ public final class PacketUtils {
 
     public static PacketContainer getPassengerPacket(int vehicleId, int passengerCount, int... passengers) {
         try {
-            PacketContainer pc = protocolManager.createPacket(PacketType.Play.Server.MOUNT);
+            PacketContainer pc = createPacketSafe(PacketType.Play.Server.MOUNT);
 
             pc.getIntegers().write(0, vehicleId);
             pc.getIntegerArrays().write(0, passengers);
@@ -539,5 +740,71 @@ public final class PacketUtils {
     public static double clamp(double targetNum, double min, double max) {
         // Makes sure a number is within a range
         return Math.max(min, Math.min(targetNum, max));
+    }
+
+    /**
+     * Display metadata layout changed in 1.20+, so OLD adapter offset must never be used there.
+     */
+    public static int getDisplayMetadataOffset() {
+        if (Utils.versionIsAfterOrEqual(20)) {
+            if (!loggedDisplayAdapterOverride && Main.getInstance() != null && Main.getInstance().isVersionAdapter()) {
+                Main.getInstance().getLogger().warning("[PacketUtils] OLD version-adapter is ignored for Display metadata on MC 1.20+.");
+                loggedDisplayAdapterOverride = true;
+            }
+            return 0;
+        }
+
+        if (Main.getInstance() != null && Main.getInstance().isVersionAdapter()) {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Uses client protocol when available so ViaVersion clients get the correct Display metadata layout.
+     */
+    public static int getDisplayMetadataOffset(Player player) {
+        if (player == null) {
+            return getDisplayMetadataOffset();
+        }
+
+        try {
+            Integer viaProtocol = getViaClientProtocol(player);
+            if (viaProtocol != null && viaProtocol >= CLIENT_PROTOCOL_1_20) {
+                return 0;
+            }
+
+            ProtocolManager manager = getProtocolManagerSafe();
+            if (manager != null) {
+                int clientProtocol = manager.getProtocolVersion(player);
+                if (clientProtocol >= CLIENT_PROTOCOL_1_20) {
+                    return 0;
+                }
+            }
+        } catch (Exception ignored) {
+            // Fall back to server-based logic.
+        }
+
+        return getDisplayMetadataOffset();
+    }
+
+    private static Integer getViaClientProtocol(Player player) {
+        try {
+            Class<?> viaClass;
+            try {
+                viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            } catch (ClassNotFoundException ignored) {
+                viaClass = Class.forName("us.myles.ViaVersion.api.Via");
+            }
+
+            Object api = viaClass.getMethod("getAPI").invoke(null);
+            Object result = api.getClass().getMethod("getPlayerVersion", java.util.UUID.class).invoke(api, player.getUniqueId());
+            if (result instanceof Integer) {
+                return (Integer) result;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 }

@@ -40,8 +40,8 @@ public class PacketBlockDisplay extends PacketDisplay {
 
     private void update(Player player, WrappedDataWatcher dataWatcher) {
         WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
-        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
-        if (blockMaterial != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockMaterial.createBlockData());
+        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockData);
+        if (blockMaterial != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockMaterial.createBlockData());
 
         /* SEND PACKET */
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
@@ -68,7 +68,7 @@ public class PacketBlockDisplay extends PacketDisplay {
     public PacketBlockDisplay updateBlockData(Player player, BlockData blockData) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
         WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
-        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(), serializer, blockData);
+        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockData);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -116,7 +116,6 @@ public class PacketBlockDisplay extends PacketDisplay {
     }
 
     public int versionOverwrite() {
-        if(Main.getInstance().isVersionAdapter()) return -1;
-        return 0;
+        return PacketUtils.getDisplayMetadataOffset();
     }
 }

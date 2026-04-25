@@ -3,7 +3,6 @@ package cz.gennario.gennarioframework.utils.packet.types.display.types;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.gson.Gson;
-import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.types.display.PacketDisplay;
@@ -77,21 +76,21 @@ public class PacketTextDisplay extends PacketDisplay {
                 Component component = MiniMessage.miniMessage().deserialize(sanitized);
                 String json = GsonComponentSerializer.gson().serialize(component);
 
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(),
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(player),
                         WrappedDataWatcher.Registry.getChatComponentSerializer(),
                         WrappedChatComponent.fromJson(json).getHandle());
             } catch (Exception e) {
                 e.printStackTrace();
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), String.class, text);
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(player), String.class, text);
             }
         }
 
         /* Set line width */
-        if (lineWidth != 0) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(), Integer.class, lineWidth);
+        if (lineWidth != 0) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(player), Integer.class, lineWidth);
         /* Set background color */
-        PacketUtils.setMetadata(dataWatcher, 25+versionOverwrite(), Integer.class, backgroundColor);
+        PacketUtils.setMetadata(dataWatcher, 25+versionOverwrite(player), Integer.class, backgroundColor);
         /* Set text opacity */
-        if (textOpacity != 0) PacketUtils.setMetadata(dataWatcher, 26+versionOverwrite(), Byte.class, textOpacity);
+        if (textOpacity != 0) PacketUtils.setMetadata(dataWatcher, 26+versionOverwrite(player), Byte.class, textOpacity);
 
         /* Set flags */
         byte flags = 0;
@@ -100,7 +99,7 @@ public class PacketTextDisplay extends PacketDisplay {
         if (defaultBackgroundColor) flags += 0x04;
         if (textAlignment != null) flags += getPacketTextAlignment();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, flags);
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, flags);
 
         /* SEND PACKET */
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
@@ -149,12 +148,12 @@ public class PacketTextDisplay extends PacketDisplay {
                 );
                 Component component = MiniMessage.miniMessage().deserialize(sanitized);
                 String json = GsonComponentSerializer.gson().serialize(component);
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(),
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(player),
                         WrappedDataWatcher.Registry.getChatComponentSerializer(),
                         WrappedChatComponent.fromJson(json).getHandle());
             } catch (Exception e) {
                 e.printStackTrace();
-                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(), String.class, text);
+                PacketUtils.setMetadata(dataWatcher, 23 + versionOverwrite(player), String.class, text);
             }
         }
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
@@ -168,7 +167,7 @@ public class PacketTextDisplay extends PacketDisplay {
 
     public PacketTextDisplay updateLineWidth(Player player, int lineWidth) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (lineWidth != 0) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(), Integer.class, lineWidth);
+        if (lineWidth != 0) PacketUtils.setMetadata(dataWatcher, 24+versionOverwrite(player), Integer.class, lineWidth);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -185,7 +184,7 @@ public class PacketTextDisplay extends PacketDisplay {
 
     public PacketTextDisplay updateBackgroundColor(Player player, int backgroundColor) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (backgroundColor != 0) PacketUtils.setMetadata(dataWatcher, 25+versionOverwrite(), Integer.class, backgroundColor);
+        if (backgroundColor != 0) PacketUtils.setMetadata(dataWatcher, 25+versionOverwrite(player), Integer.class, backgroundColor);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -198,7 +197,7 @@ public class PacketTextDisplay extends PacketDisplay {
 
     public PacketTextDisplay updateTextOpacity(Player player, byte textOpacity) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (textOpacity != 0) PacketUtils.setMetadata(dataWatcher, 26+versionOverwrite(), Byte.class, textOpacity);
+        if (textOpacity != 0) PacketUtils.setMetadata(dataWatcher, 26+versionOverwrite(player), Byte.class, textOpacity);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -218,7 +217,7 @@ public class PacketTextDisplay extends PacketDisplay {
         if (defaultBackgroundColor) flags += 0x04;
         if (textAlignment != null) flags += getPacketTextAlignment();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, flags);
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, flags);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -232,7 +231,7 @@ public class PacketTextDisplay extends PacketDisplay {
     public PacketTextDisplay updateShadow(Player player, boolean shadow) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, (byte) (shadow ? (byte) 0x01 : 0));
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, (byte) (shadow ? (byte) 0x01 : 0));
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
@@ -245,7 +244,7 @@ public class PacketTextDisplay extends PacketDisplay {
     public PacketTextDisplay updateSeeThrough(Player player, boolean seeThrough) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, (byte) (seeThrough ? (byte) 0x02 : 0));
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, (byte) (seeThrough ? (byte) 0x02 : 0));
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
@@ -258,7 +257,7 @@ public class PacketTextDisplay extends PacketDisplay {
     public PacketTextDisplay updateDefaultBackgroundColor(Player player, boolean defaultBackgroundColor) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, (byte) (defaultBackgroundColor ? (byte) 0x04 : 0));
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, (byte) (defaultBackgroundColor ? (byte) 0x04 : 0));
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
@@ -271,7 +270,7 @@ public class PacketTextDisplay extends PacketDisplay {
     public PacketTextDisplay updateTextAlignment(Player player, TextDisplay.TextAlignment textAlignment) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(), Byte.class, getPacketTextAlignment());
+        PacketUtils.setMetadata(dataWatcher, 27+versionOverwrite(player), Byte.class, getPacketTextAlignment());
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
     }
@@ -349,7 +348,6 @@ public class PacketTextDisplay extends PacketDisplay {
     }
 
     public int versionOverwrite() {
-        if(Main.getInstance().isVersionAdapter()) return -1;
-        return 0;
+        return PacketUtils.getDisplayMetadataOffset();
     }
 }

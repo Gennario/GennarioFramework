@@ -17,6 +17,34 @@ import java.util.List;
 
 public final class Utils {
 
+    private record VersionParts(int major, int update) {
+    }
+
+    private static VersionParts getVersionParts(Server server) {
+        String[] split = getMinecraftVersion(server).split("\\.");
+
+        int first = parseIntSafe(split, 0);
+        // Legacy format: 1.21.1 -> major=21, update=1
+        if (first == 1 && split.length > 1) {
+            return new VersionParts(parseIntSafe(split, 1), parseIntSafe(split, 2));
+        }
+
+        // New format: 26.1.2 -> major=26, update=1
+        return new VersionParts(first, parseIntSafe(split, 1));
+    }
+
+    private static int parseIntSafe(String[] split, int index) {
+        if (index < 0 || index >= split.length) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(split[index]);
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
+
     public static String colorize(String string) {
         return colorize(null, string);
     }
@@ -150,41 +178,41 @@ public final class Utils {
     }
 
     public static boolean isOldVersion() {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) < 13;
+        return getVersionParts(Bukkit.getServer()).major() < 13;
     }
 
     public static boolean versionIs(int version) {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) == version;
+        return getVersionParts(Bukkit.getServer()).major() == version;
     }
 
     public static boolean versionIsAfter(int version) {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) > version;
+        return getVersionParts(Bukkit.getServer()).major() > version;
     }
 
     public static boolean versionIsBefore(int version) {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) < version;
+        return getVersionParts(Bukkit.getServer()).major() < version;
     }
 
     public static boolean versionIsBeforeOrEqual(int version) {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) <= version;
+        return getVersionParts(Bukkit.getServer()).major() <= version;
     }
 
     public static boolean versionIsBeforeOrEqual(int version, int update) {
-        String[] split = Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.");
-        if (split[1].equals(version)) {
-            if (split.length == 3) {
-                return Integer.parseInt(split[1]) <= version && Integer.parseInt(split[2]) <= update;
-            } else return Integer.parseInt(split[1]) <= version;
-        } else return Integer.parseInt(split[1]) <= version;
+        VersionParts parts = getVersionParts(Bukkit.getServer());
+        if (parts.major() < version) return true;
+        if (parts.major() > version) return false;
+        return parts.update() <= update;
     }
 
     public static boolean versionIsAfterOrEqual(int version) {
-        return Integer.parseInt(Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.")[1]) >= version;
+        return getVersionParts(Bukkit.getServer()).major() >= version;
     }
 
     public static boolean versionIsAfterOrEqual(int version, int update) {
-        String[] split = Utils.getMinecraftVersion(Bukkit.getServer()).split("\\.");
-        return Integer.parseInt(split[1]) >= version && Integer.parseInt(split[2]) >= update;
+        VersionParts parts = getVersionParts(Bukkit.getServer());
+        if (parts.major() > version) return true;
+        if (parts.major() < version) return false;
+        return parts.update() >= update;
     }
 
     public static boolean valueExist(StringReader reader, String value) {

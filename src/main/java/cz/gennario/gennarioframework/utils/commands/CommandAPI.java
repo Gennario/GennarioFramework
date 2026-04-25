@@ -17,10 +17,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @deprecated Use {@link cz.gennario.gennarioframework.commands.GennarioCommand} instead.
+ * This class will be removed in a future version.
+ */
+@Deprecated
 @Getter
 public class CommandAPI {
 
@@ -143,7 +149,7 @@ public class CommandAPI {
                 } else {
                     String s = args[0];
                     for (SubCommand command : subCommands) {
-                        if (command.getCommand().equalsIgnoreCase(s) || command.getAliases().contains(s.toLowerCase())) {
+                        if (command.getCommand().equalsIgnoreCase(s) || hasAlias(command, s)) {
                             if (sender instanceof ConsoleCommandSender && !command.isAllowConsoleSender()) {
                                 sender.sendMessage(Utils.colorize(null, commandSettings.getDisabledConsole()));
                                 return false;
@@ -251,7 +257,7 @@ public class CommandAPI {
                     }
                 } else {
                     for (SubCommand subCommand : subCommands) {
-                        if (subCommand.getCommand().equalsIgnoreCase(args[0])) {
+                        if (subCommand.getCommand().equalsIgnoreCase(args[0]) || hasAlias(subCommand, args[0])) {
                             int count = args.length - 2;
                             if ((subCommand.getSubCommandArgs().size() - 1) >= count) {
                                 boolean permission = false;
@@ -265,7 +271,7 @@ public class CommandAPI {
                                     }
                                 }
                                 if (!permission) {
-                                    return List.of("No perms c:");
+                                    return List.of();
                                 }
                                 SubCommandArg subCommandArg = subCommand.getSubCommandArgs().get(count);
                                 switch (subCommandArg.getValue()) {
@@ -318,6 +324,7 @@ public class CommandAPI {
             field.setAccessible(true);
             CommandMap commandMap = (CommandMap) field.get(plugin.getServer().getPluginManager());
             commandMap.register(plugin.getDescription().getName(), pluginCommand);
+            syncCommands();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -329,8 +336,28 @@ public class CommandAPI {
             field.setAccessible(true);
             CommandMap commandMap = (CommandMap) field.get(plugin.getServer().getPluginManager());
             commandMap.getCommand(name).unregister(commandMap);
+            syncCommands();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private boolean hasAlias(SubCommand command, String value) {
+        if (command.getAliases() == null || value == null) return false;
+        for (String alias : command.getAliases()) {
+            if (alias != null && alias.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void syncCommands() {
+        try {
+            Method syncCommands = plugin.getServer().getClass().getMethod("syncCommands");
+            syncCommands.invoke(plugin.getServer());
+        } catch (Exception ignored) {
+            // Older server versions may not expose syncCommands.
         }
     }
 

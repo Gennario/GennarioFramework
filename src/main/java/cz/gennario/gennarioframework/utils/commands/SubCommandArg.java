@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @deprecated Use {@link cz.gennario.gennarioframework.commands.argument.Argument} instead.
+ */
+@Deprecated
 @Getter
 @Setter
 public class SubCommandArg {

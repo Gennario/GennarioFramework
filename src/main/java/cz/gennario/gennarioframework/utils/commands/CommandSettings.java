@@ -3,6 +3,10 @@ package cz.gennario.gennarioframework.utils.commands;
 import cz.gennario.gennarioframework.utils.Utils;
 import lombok.Data;
 
+/**
+ * @deprecated Use {@link cz.gennario.gennarioframework.commands.CommandMessages} instead.
+ */
+@Deprecated
 @Data
 public class CommandSettings {
 

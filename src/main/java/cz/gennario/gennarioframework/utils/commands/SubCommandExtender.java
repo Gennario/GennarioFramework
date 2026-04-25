@@ -2,6 +2,10 @@ package cz.gennario.gennarioframework.utils.commands;
 
 import java.util.List;
 
+/**
+ * @deprecated Use {@link cz.gennario.gennarioframework.commands.GennarioSubCommand} instead.
+ */
+@Deprecated
 public abstract class SubCommandExtender {
 
     public abstract List<SubCommandExtender> getSubCommands();

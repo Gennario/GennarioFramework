@@ -8,6 +8,10 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
+/**
+ * @deprecated Use {@link cz.gennario.gennarioframework.commands.context.CommandContext} instead.
+ */
+@Deprecated
 public class CommandArg {
 
     private final CommandAPI api;

@@ -1,11 +1,13 @@
 package cz.gennario.gennarioframework;
 
+import cz.gennario.gennarioframework.commands.CommandExamples;
 import cz.gennario.gennarioframework.utilcommands.DMFormatCommand;
 import cz.gennario.gennarioframework.utilcommands.LocationCommand;
 import cz.gennario.gennarioframework.utils.*;
 import cz.gennario.gennarioframework.utils.config.Config;
 import cz.gennario.gennarioframework.utils.cooldown.CooldownUtil;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
+import cz.gennario.gennarioframework.utils.packet.backend.PacketBackendMode;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -48,6 +50,17 @@ public final class Main extends JavaPlugin {
             colorFormat = ColorFormat.GENNARIO_FORMAT;
         }
 
+        PacketBackendMode backendMode = PacketBackendMode.fromString(
+                yamlDocument.getString("packet-backend.mode"),
+                PacketBackendMode.AUTO
+        );
+        PacketBackendMode autoPriority = PacketBackendMode.fromString(
+                yamlDocument.getString("packet-backend.auto-priority"),
+                PacketBackendMode.PROTOCOLLIB
+        );
+        boolean fallbackEnabled = yamlDocument.getBoolean("packet-backend.fallback-enabled", true);
+
+        PacketUtils.configureBackend(backendMode, fallbackEnabled, autoPriority);
         PacketUtils.init();
         checkVersionAdapter();
 
@@ -55,6 +68,8 @@ public final class Main extends JavaPlugin {
 
         new LocationCommand(this);
         new DMFormatCommand(this);
+
+        //CommandExamples.registerAll(this);
     }
 
     @Override
@@ -67,6 +82,18 @@ public final class Main extends JavaPlugin {
 
     public void checkVersionAdapter() {
         String string = configFile.getYamlDocument().getString("version-adapter");
+        if (Utils.versionIsAfterOrEqual(20)) {
+            versionAdapter = false;
+            if (string.equalsIgnoreCase("OLD")) {
+                Bukkit.getConsoleSender().sendMessage("§c[GennarioFramework] §7OLD adapter is not supported on 1.20+ for Display metadata. Forcing NEW.");
+            } else if (string.equalsIgnoreCase("AUTO")) {
+                Bukkit.getConsoleSender().sendMessage("§c[GennarioFramework] §7Auto detected version 1.20 and newer (NEW METHOD)");
+            } else {
+                Bukkit.getConsoleSender().sendMessage("§c[GennarioFramework] §7NEW method applied (1.20 and newer)");
+            }
+            return;
+        }
+
         if (string.equalsIgnoreCase("AUTO")) {
             if (Utils.versionIsBefore(20)) {
                 versionAdapter = true;

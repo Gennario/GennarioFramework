@@ -2,8 +2,10 @@ package cz.gennario.gennarioframework.gui.utils;
 
 import cz.gennario.gennarioframework.gui.GUIComponent;
 import cz.gennario.gennarioframework.gui.GUIContainer;
+import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.items.Items;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -33,7 +35,19 @@ public class GUIConfigLoader {
 
                 @Override
                 public void onClick(Player player, ClickData clickData) {
-
+                    for (String actions : componentSection.getStringList("actions", new ArrayList<>())) {
+                        if (actions.startsWith("[message]")) {
+                            player.sendMessage(Utils.colorize(player, actions.replace("[message]", "")));
+                        }else if (actions.startsWith("[console]")) {
+                            String command = actions.replace("[console]", "");
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Utils.colorize(player, command));
+                        }else if (actions.startsWith("[player]")) {
+                            String command = actions.replace("[player]", "");
+                            player.performCommand(Utils.colorize(player, command));
+                        } else if (actions.startsWith("[close]")) {
+                            player.closeInventory();
+                        }
+                    }
                 }
             };
             components.put(route.charAt(0), guiComponent);

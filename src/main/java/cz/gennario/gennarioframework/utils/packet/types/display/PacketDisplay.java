@@ -2,7 +2,6 @@ package cz.gennario.gennarioframework.utils.packet.types.display;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import cz.gennario.gennarioframework.Main;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.entity.PacketEntity;
 import lombok.Getter;
@@ -41,23 +40,23 @@ public abstract class PacketDisplay extends PacketEntity {
 
         super.updateEntity(player, dataWatcher);
 
-        if (interpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 8+versionOverwrite(), Integer.class, interpolationDelay);
-        if (transformationInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 9+versionOverwrite(), Integer.class, transformationInterpolationDelay);
-        if (positionInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 10+versionOverwrite(), Integer.class, positionInterpolationDelay);
+        if (interpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 8+versionOverwrite(player), Integer.class, interpolationDelay);
+        if (transformationInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 9+versionOverwrite(player), Integer.class, transformationInterpolationDelay);
+        if (positionInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 10+versionOverwrite(player), Integer.class, positionInterpolationDelay);
 
-        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11+versionOverwrite(), Vector3f.class, translation);
-        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12+versionOverwrite(), Vector3f.class, scale);
+        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11+versionOverwrite(player), Vector3f.class, translation);
+        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12+versionOverwrite(player), Vector3f.class, scale);
 
-        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13+versionOverwrite(), Quaternionf.class, rotationLeft);
-        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14+versionOverwrite(), Quaternionf.class, rotationRight);
+        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13+versionOverwrite(player), Quaternionf.class, rotationLeft);
+        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14+versionOverwrite(player), Quaternionf.class, rotationRight);
 
-        if (billboard != null) PacketUtils.setMetadata(dataWatcher, 15+versionOverwrite(), Byte.class, (byte) billboard.ordinal());
-        if (brightness != 0) PacketUtils.setMetadata(dataWatcher, 16+versionOverwrite(), Integer.class, brightness);
-        if (viewRange != 0) PacketUtils.setMetadata(dataWatcher, 17+versionOverwrite(), Float.class, viewRange);
-        if (shadowRadius != 0) PacketUtils.setMetadata(dataWatcher, 18+versionOverwrite(), Float.class, shadowRadius);
-        if (shadowStrength != 0) PacketUtils.setMetadata(dataWatcher, 19+versionOverwrite(), Float.class, shadowStrength);
-        if (width != 0) PacketUtils.setMetadata(dataWatcher, 20+versionOverwrite(), Float.class, width);
-        if (height != 0) PacketUtils.setMetadata(dataWatcher, 21+versionOverwrite(), Float.class, height);
+        if (billboard != null) PacketUtils.setMetadata(dataWatcher, 15+versionOverwrite(player), Byte.class, (byte) billboard.ordinal());
+        if (brightness != 0) PacketUtils.setMetadata(dataWatcher, 16+versionOverwrite(player), Integer.class, brightness);
+        if (viewRange != 0) PacketUtils.setMetadata(dataWatcher, 17+versionOverwrite(player), Float.class, viewRange);
+        if (shadowRadius != 0) PacketUtils.setMetadata(dataWatcher, 18+versionOverwrite(player), Float.class, shadowRadius);
+        if (shadowStrength != 0) PacketUtils.setMetadata(dataWatcher, 19+versionOverwrite(player), Float.class, shadowStrength);
+        if (width != 0) PacketUtils.setMetadata(dataWatcher, 20+versionOverwrite(player), Float.class, width);
+        if (height != 0) PacketUtils.setMetadata(dataWatcher, 21+versionOverwrite(player), Float.class, height);
 
         this.entityPacketContainer = displayPacketContainer;
         return dataWatcher;
@@ -110,7 +109,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateInterpolationDelay(Player player, int interpolationDelay) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (interpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 8+versionOverwrite(), Integer.class, interpolationDelay);
+        if (interpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 8+versionOverwrite(player), Integer.class, interpolationDelay);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -123,7 +122,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateTransformationInterpolationDelay(Player player, int transformationInterpolationDelay) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (transformationInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 9+versionOverwrite(), Integer.class, transformationInterpolationDelay);
+        if (transformationInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 9+versionOverwrite(player), Integer.class, transformationInterpolationDelay);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -136,7 +135,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updatePositionInterpolationDelay(Player player, int positionInterpolationDelay) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (positionInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 10+versionOverwrite(), Integer.class, positionInterpolationDelay);
+        if (positionInterpolationDelay != 0) PacketUtils.setMetadata(dataWatcher, 10+versionOverwrite(player), Integer.class, positionInterpolationDelay);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -149,7 +148,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateTranslation(Player player, Vector3f translation) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11+versionOverwrite(), Vector3f.class, translation);
+        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11+versionOverwrite(player), Vector3f.class, translation);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -166,7 +165,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateScale(Player player, Vector3f scale) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12+versionOverwrite(), Vector3f.class, scale);
+        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12+versionOverwrite(player), Vector3f.class, scale);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -179,7 +178,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateRotationLeft(Player player, Quaternionf rotationLeft) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13+versionOverwrite(), Quaternionf.class, rotationLeft);
+        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13+versionOverwrite(player), Quaternionf.class, rotationLeft);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -193,7 +192,7 @@ public abstract class PacketDisplay extends PacketEntity {
     public PacketDisplay updateRotationRight(Player player, Quaternionf rotationRight) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14+versionOverwrite(), Quaternionf.class, rotationRight);
+        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14+versionOverwrite(player), Quaternionf.class, rotationRight);
 
         PacketContainer packet1 = PacketUtils.applyMetadata(getEntityId(), dataWatcher);
         PacketUtils.sendPacket(player, packet1);
@@ -207,7 +206,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateBillboard(Player player, Display.Billboard billboard) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (billboard != null) PacketUtils.setMetadata(dataWatcher, 15+versionOverwrite(), Byte.class, (byte) billboard.ordinal());
+        if (billboard != null) PacketUtils.setMetadata(dataWatcher, 15+versionOverwrite(player), Byte.class, (byte) billboard.ordinal());
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -220,7 +219,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateBrightness(Player player, int brightness) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (brightness != 0) PacketUtils.setMetadata(dataWatcher, 16+versionOverwrite(), Integer.class, brightness);
+        if (brightness != 0) PacketUtils.setMetadata(dataWatcher, 16+versionOverwrite(player), Integer.class, brightness);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -233,7 +232,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateViewRange(Player player, float viewRange) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (viewRange != 0) PacketUtils.setMetadata(dataWatcher, 17+versionOverwrite(), Float.class, viewRange);
+        if (viewRange != 0) PacketUtils.setMetadata(dataWatcher, 17+versionOverwrite(player), Float.class, viewRange);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -246,7 +245,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateShadowRadius(Player player, float shadowRadius) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (shadowRadius != 0) PacketUtils.setMetadata(dataWatcher, 18+versionOverwrite(), Float.class, shadowRadius);
+        if (shadowRadius != 0) PacketUtils.setMetadata(dataWatcher, 18+versionOverwrite(player), Float.class, shadowRadius);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -259,7 +258,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateShadowStrength(Player player, float shadowStrength) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (shadowStrength != 0) PacketUtils.setMetadata(dataWatcher, 19+versionOverwrite(), Float.class, shadowStrength);
+        if (shadowStrength != 0) PacketUtils.setMetadata(dataWatcher, 19+versionOverwrite(player), Float.class, shadowStrength);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -272,7 +271,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateWidth(Player player, float width) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (width != 0) PacketUtils.setMetadata(dataWatcher, 20+versionOverwrite(), Float.class, width);
+        if (width != 0) PacketUtils.setMetadata(dataWatcher, 20+versionOverwrite(player), Float.class, width);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -285,7 +284,7 @@ public abstract class PacketDisplay extends PacketEntity {
 
     public PacketDisplay updateHeight(Player player, float height) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (height != 0) PacketUtils.setMetadata(dataWatcher, 21+versionOverwrite(), Float.class, height);
+        if (height != 0) PacketUtils.setMetadata(dataWatcher, 21+versionOverwrite(player), Float.class, height);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -299,10 +298,10 @@ public abstract class PacketDisplay extends PacketEntity {
     public PacketDisplay updateTransform(Player player, Vector3f translation, Quaternionf rotationLeft, Vector3f scale, Quaternionf rotationRight) {
         WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
 
-        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11 + versionOverwrite(), Vector3f.class, translation);
-        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12 + versionOverwrite(), Vector3f.class, scale);
-        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13 + versionOverwrite(), Quaternionf.class, rotationLeft);
-        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14 + versionOverwrite(), Quaternionf.class, rotationRight);
+        if (translation != null) PacketUtils.setMetadata(dataWatcher, 11 + versionOverwrite(player), Vector3f.class, translation);
+        if (scale != null) PacketUtils.setMetadata(dataWatcher, 12 + versionOverwrite(player), Vector3f.class, scale);
+        if (rotationLeft != null) PacketUtils.setMetadata(dataWatcher, 13 + versionOverwrite(player), Quaternionf.class, rotationLeft);
+        if (rotationRight != null) PacketUtils.setMetadata(dataWatcher, 14 + versionOverwrite(player), Quaternionf.class, rotationRight);
 
         PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
         return this;
@@ -391,7 +390,10 @@ public abstract class PacketDisplay extends PacketEntity {
     }
 
     public int versionOverwrite() {
-        if(Main.getInstance().isVersionAdapter()) return -1;
-        return 0;
+        return PacketUtils.getDisplayMetadataOffset();
+    }
+
+    protected int versionOverwrite(Player player) {
+        return PacketUtils.getDisplayMetadataOffset(player);
     }
 }
