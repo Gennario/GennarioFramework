@@ -126,14 +126,14 @@ public class Items {
         }
 
         // Enchants
-        if (!section.contains("enchants")) return;
-
-        for (String enchants : section.getStringList("enchants")) {
-            String[] args = enchants.split(":");
-            if (args.length == 2) {
-                String enchantName = args[0];
-                int enchantLevel = Integer.parseInt(args[1]);
-                item.addEnchant(Enchantment.getByName(enchantName.toUpperCase()), enchantLevel);
+        if (section.contains("enchants")) {
+            for (String enchants : section.getStringList("enchants")) {
+                String[] args = enchants.split(":");
+                if (args.length == 2) {
+                    String enchantName = args[0];
+                    int enchantLevel = Integer.parseInt(args[1]);
+                    item.addEnchant(Enchantment.getByName(enchantName.toUpperCase()), enchantLevel);
+                }
             }
         }
 
