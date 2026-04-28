@@ -1,23 +1,21 @@
 package cz.gennario.gennarioframework.utils.packet.entity;
 
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.Pair;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
+import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentEntry;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -32,7 +30,7 @@ public abstract class PacketEntityExtender {
     private final boolean crouching, invisible, glowing, elytraFlying, showName, silent, noGravity;
     private final String name;
 
-    private final List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipment;
+    private final List<PacketEquipmentEntry> equipment;
 
     public PacketEntityExtender() {
         this.entityId = PacketUtils.generateRandomEntityId();
@@ -51,78 +49,60 @@ public abstract class PacketEntityExtender {
         this.equipment = new ArrayList<>();
     }
 
-
     public void spawn(Player player) {
-        /* SPAWN */
-        PacketContainer packet = PacketUtils.spawnEntityPacket(entityType, location, entityId, vector);
-        PacketUtils.sendPacket(player, packet);
+        float yaw = location != null ? location.getYaw() : 0;
+        float pitch = location != null ? location.getPitch() : 0;
+        PacketUtils.sendSpawnPacket(player, entityType, location, entityId, vector, yaw, pitch);
 
-        /* DATA WATCHER - metadata set */
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
 
         byte flags = 0;
-        if (isCrouching()) {
-            flags += (byte) 0x02;
-        }
-        if (isInvisible()) {
-            flags += (byte) 0x20;
-        }
-        if (isGlowing()) {
-            flags += (byte) 0x40;
-        }
-        if (isElytraFlying()) {
-            flags += (byte) 0x80;
-        }
-        PacketUtils.setMetadata(dataWatcher, 0, Byte.class, (byte) flags);
+        if (crouching) flags += (byte) 0x02;
+        if (invisible) flags += (byte) 0x20;
+        if (glowing) flags += (byte) 0x40;
+        if (elytraFlying) flags += (byte) 0x80;
+        PacketUtils.addMetadata(metadata, 0, EntityDataTypes.BYTE, flags);
 
-        if (!Objects.equals(this.name, "")) {
-            Optional<?> opt = Optional.of(WrappedChatComponent.fromChatMessage(Utils.colorize(player, this.name))[0].getHandle());
-            PacketUtils.setMetadata(dataWatcher, 2, WrappedDataWatcher.Registry.getChatComponentSerializer(true), opt);
+        if (name != null && !name.isEmpty()) {
+            try {
+                String colorized = Utils.colorize(player, name);
+                Component component = LegacyComponentSerializer.legacySection().deserialize(colorized);
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.OPTIONAL_ADV_COMPONENT, Optional.of(component));
+            } catch (Exception e) {
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.STRING, name);
+            }
         }
-        if (isShowName()) {
-            PacketUtils.setMetadata(dataWatcher, 3, Boolean.class, true);
-        }
-        if (isNoGravity()) {
-            PacketUtils.setMetadata(dataWatcher, 5, Boolean.class, true);
-        }
-        if (isSilent()) {
-            PacketUtils.setMetadata(dataWatcher, 4, Boolean.class, true);
-        }
+        PacketUtils.addMetadata(metadata, 3, EntityDataTypes.BOOLEAN, showName);
+        PacketUtils.addMetadata(metadata, 4, EntityDataTypes.BOOLEAN, silent);
+        PacketUtils.addMetadata(metadata, 5, EntityDataTypes.BOOLEAN, noGravity);
 
-        PacketContainer packet1 = PacketUtils.applyMetadata(entityId, dataWatcher);
-        PacketUtils.sendPacket(player, packet1);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
 
-        for (Pair<EnumWrappers.ItemSlot, ItemStack> itemSlotItemStackPair : equipment) {
-            PacketContainer packet2 = PacketUtils.getEquipmentPacket(entityId, itemSlotItemStackPair);
-            PacketUtils.sendPacket(player, packet2);
+        if (!equipment.isEmpty()) {
+            PacketUtils.sendEquipmentPacket(player, entityId, equipment);
         }
     }
 
     public void delete(Player player) {
-        PacketContainer destroyPacket = PacketUtils.destroyEntityPacket(entityId);
-        PacketUtils.sendPacket(player, destroyPacket);
+        PacketUtils.sendDestroyPacket(player, entityId);
     }
 
     public void teleport(Player player, Location location) {
         this.location = location;
-
-        PacketContainer teleportPacket = PacketUtils.teleportEntityPacket(entityId, location);
-        PacketContainer headRotatePacket = PacketUtils.getHeadRotatePacket(entityId, location);
-        PacketContainer bodyRotatePacket = PacketUtils.getHeadLookPacket(entityId, location);
-        PacketUtils.sendPacket(player, teleportPacket);
-        PacketUtils.sendPacket(player, bodyRotatePacket);
-        PacketUtils.sendPacket(player, headRotatePacket);
+        PacketUtils.sendTeleportPacket(player, entityId, location);
+        PacketUtils.sendBodyRotationPacket(player, entityId, location);
+        PacketUtils.sendHeadRotationPacket(player, entityId, location.getYaw());
     }
 
     public abstract PacketEntityExtender setEntityType(EntityType entityType);
 
     public abstract PacketEntityExtender setLocation(Location location);
 
-    public abstract PacketEntityExtender addEquipment(Pair<EnumWrappers.ItemSlot, ItemStack>... equipment);
+    public abstract PacketEntityExtender addEquipment(PacketEquipmentEntry... equipment);
 
-    public abstract PacketEntityExtender addEquipment(Pair<EnumWrappers.ItemSlot, ItemStack> equipment);
+    public abstract PacketEntityExtender addEquipment(PacketEquipmentEntry equipment);
 
-    public abstract PacketEntityExtender setEquipment(List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipment);
+    public abstract PacketEntityExtender setEquipment(List<PacketEquipmentEntry> equipment);
 
     public abstract PacketEntityExtender setInvisible(boolean invisible);
 

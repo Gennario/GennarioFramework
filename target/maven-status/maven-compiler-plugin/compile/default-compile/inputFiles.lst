@@ -39,6 +39,7 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/FileUtils.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/commands/CommandArg.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/entities/types/EntityInteraction.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/equipment/PacketEquipmentEntry.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/language/Language.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/display/types/PacketTextDisplay.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/commands/CommandExamples.java
@@ -96,7 +97,6 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/display/types/PacketBlockDisplay.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/commands/context/CommandContext.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/BezierCurveUtil.java
-/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/backend/ProtocolLibPacketBackend.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/MinigameEvents.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/FoliaScheduler.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/commands/platform/CommandPlatform.java
@@ -134,6 +134,7 @@
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/Main.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/commands/argument/Argument.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/ItemsAdderUtils.java
+/Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/equipment/PacketEquipmentSlot.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/commands/argument/IntegerArgument.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/packet/types/PacketSlime.java
 /Users/lukasprchal/IdeaProjects/GennarioFramework/src/main/java/cz/gennario/gennarioframework/utils/discord/WebhookConfigBuilder.java

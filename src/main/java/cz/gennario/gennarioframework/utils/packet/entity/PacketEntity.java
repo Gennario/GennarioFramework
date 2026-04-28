@@ -1,20 +1,18 @@
 package cz.gennario.gennarioframework.utils.packet.entity;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.Pair;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
+import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentEntry;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -35,14 +33,13 @@ public class PacketEntity {
     private float rotationYaw = -1, rotationPitch = -1;
     private int ticksFrozen, airTicks = 300;
 
-    private List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipment;
-    public PacketContainer entityPacketContainer;
+    private List<PacketEquipmentEntry> equipment;
+    /** Kept for API compatibility — no longer holds a ProtocolLib PacketContainer. */
+    public Object entityPacketContainer;
 
     public PacketEntity() {
         this.entityId = PacketUtils.generateRandomEntityId();
-
         this.entityType = EntityType.PIG;
-
         this.invisible = false;
         this.crouching = false;
         this.glowing = false;
@@ -50,32 +47,23 @@ public class PacketEntity {
         this.showName = false;
         this.gravity = true;
         this.silent = true;
-
         this.name = "";
-
         this.equipment = new ArrayList<>();
     }
 
     public void spawnEntity(Player player) {
-        /* SPAWN */
-        PacketUtils.sendPacket(player, getEntity(entityType));
-
-        /* DATA WATCHER - metadata set */
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, updateEntity(player, dataWatcher)));
+        sendSpawn(player, entityType);
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.sendMetadataPacket(player, entityId, updateEntity(player, metadata));
     }
 
-    protected PacketContainer getEntity(EntityType entityType) {
-        PacketContainer packetContainer = PacketUtils.spawnEntityPacket(entityType, location, entityId, velocity);
-        if (rotationYaw != -1 || rotationPitch != -1) {
-            if (rotationPitch != -1) packetContainer.getBytes().write(0, (byte) (rotationPitch * 256.0F / 360.0F));
-            if (rotationYaw != -1) packetContainer.getBytes().write(1, (byte) (rotationYaw * 256.0F / 360.0F));
-        }
-
-        return (entityPacketContainer = packetContainer);
+    protected void sendSpawn(Player player, EntityType type) {
+        float yaw = rotationYaw != -1 ? rotationYaw : (location != null ? location.getYaw() : 0);
+        float pitch = rotationPitch != -1 ? rotationPitch : (location != null ? location.getPitch() : 0);
+        PacketUtils.sendSpawnPacket(player, type, location, entityId, velocity, yaw, pitch);
     }
 
-    protected WrappedDataWatcher updateEntity(Player player, WrappedDataWatcher dataWatcher) {
+    protected List<EntityData<?>> updateEntity(Player player, List<EntityData<?>> metadata) {
         byte flags = 0;
         if (fire) flags += (byte) 0x01;
         if (crouching) flags += (byte) 0x02;
@@ -85,141 +73,106 @@ public class PacketEntity {
         if (glowing) flags += (byte) 0x40;
         if (elytraFlying) flags += (byte) 0x80;
 
-        PacketUtils.setMetadata(dataWatcher, 0, Byte.class, (byte) flags);
-        PacketUtils.setMetadata(dataWatcher, 1, Integer.class, airTicks);
+        PacketUtils.addMetadata(metadata, 0, EntityDataTypes.BYTE, flags);
+        PacketUtils.addMetadata(metadata, 1, EntityDataTypes.INT, airTicks);
 
-        if (name != null) {
-            Optional<?> opt = Optional.of(WrappedChatComponent.fromChatMessage(Utils.colorize(player, this.name))[0].getHandle());
+        if (name != null && !name.isEmpty()) {
             try {
-                PacketUtils.setMetadata(dataWatcher, 2, WrappedDataWatcher.Registry.getChatComponentSerializer(true), opt);
+                String colorized = Utils.colorize(player, name);
+                Component component = LegacyComponentSerializer.legacySection().deserialize(colorized);
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.OPTIONAL_ADV_COMPONENT, Optional.of(component));
             } catch (Exception e) {
-                PacketUtils.setMetadata(dataWatcher, 2, String.class, this.name);
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.STRING, name);
             }
         }
 
+        PacketUtils.addMetadata(metadata, 3, EntityDataTypes.BOOLEAN, showName);
+        PacketUtils.addMetadata(metadata, 4, EntityDataTypes.BOOLEAN, silent);
+        PacketUtils.addMetadata(metadata, 5, EntityDataTypes.BOOLEAN, !gravity);
+        PacketUtils.addMetadata(metadata, 7, EntityDataTypes.INT, ticksFrozen);
 
-        PacketUtils.setMetadata(dataWatcher, 3, Boolean.class, showName);
-        PacketUtils.setMetadata(dataWatcher, 4, Boolean.class, silent);
-        PacketUtils.setMetadata(dataWatcher, 5, Boolean.class, !gravity);
-        PacketUtils.setMetadata(dataWatcher, 7, Integer.class, ticksFrozen);
-
-
-        for (Pair<EnumWrappers.ItemSlot, ItemStack> itemSlotItemStackPair : getEquipment()) {
-            PacketContainer packet2 = PacketUtils.getEquipmentPacket(getEntityId(), new Pair<>(itemSlotItemStackPair.getFirst(), itemSlotItemStackPair.getSecond()));
-            PacketUtils.sendPacket(player, packet2);
+        for (PacketEquipmentEntry entry : getEquipment()) {
+            PacketUtils.sendEquipmentPacket(player, entityId, List.of(entry));
         }
 
-        return dataWatcher;
+        return metadata;
     }
 
-
     public void delete(Player player) {
-        PacketContainer destroyPacket = PacketUtils.destroyEntityPacket(entityId);
-        PacketUtils.sendPacket(player, destroyPacket);
+        PacketUtils.sendDestroyPacket(player, entityId);
     }
 
     public void teleport(Player player, Location location) {
         this.location = location;
-
-        PacketContainer teleportPacket = PacketUtils.teleportEntityPacket(entityId, location);
-        PacketContainer headRotatePacket = PacketUtils.getHeadRotatePacket(entityId, location);
-        PacketContainer bodyRotatePacket = PacketUtils.getHeadLookPacket(entityId, location);
-        PacketUtils.sendPacket(player, teleportPacket);
-        PacketUtils.sendPacket(player, bodyRotatePacket);
-        PacketUtils.sendPacket(player, headRotatePacket);
+        PacketUtils.sendTeleportPacket(player, entityId, location);
+        PacketUtils.sendBodyRotationPacket(player, entityId, location);
+        PacketUtils.sendHeadRotationPacket(player, entityId, location.getYaw());
     }
 
-    /* Click event */
     public void addClickEvent(PacketClickResponse clickResponse) {
         PacketUtils.entityClickMap.put(entityId, clickResponse);
     }
 
-    /* UPDATE SPECIFIC THINS */
+    // ── UPDATE SPECIFIC THINGS ────────────────────────────────────────────────
 
-    /* CUSTOM NAME */
     public PacketEntity updateName(Player player) {
         return updateName(player, name);
     }
 
     public PacketEntity updateName(Player player, String name) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        if (name != null) {
-            Optional<?> opt = Optional.of(WrappedChatComponent.fromChatMessage(Utils.colorize(player, this.name))[0].getHandle());
-            PacketUtils.setMetadata(dataWatcher, 2, WrappedDataWatcher.Registry.getChatComponentSerializer(true), opt);
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        if (name != null && !name.isEmpty()) {
+            try {
+                String colorized = Utils.colorize(player, name);
+                Component component = LegacyComponentSerializer.legacySection().deserialize(colorized);
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.OPTIONAL_ADV_COMPONENT, Optional.of(component));
+            } catch (Exception e) {
+                PacketUtils.addMetadata(metadata, 2, EntityDataTypes.STRING, name);
+            }
         }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    /* EQUIPMENT */
     public PacketEntity updateEquipment(Player player) {
         return updateEquipment(player, equipment);
     }
 
-    public PacketEntity updateEquipment(Player player, List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipment) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (equipment != null) {
-            for (Pair<EnumWrappers.ItemSlot, ItemStack> itemSlotItemStackPair : equipment) {
-                PacketContainer packet2 = PacketUtils.getEquipmentPacket(entityId, new Pair<>(itemSlotItemStackPair.getFirst(), itemSlotItemStackPair.getSecond()));
-                PacketUtils.sendPacket(player, packet2);
-            }
+    public PacketEntity updateEquipment(Player player, List<PacketEquipmentEntry> equipment) {
+        if (equipment != null && !equipment.isEmpty()) {
+            PacketUtils.sendEquipmentPacket(player, entityId, equipment);
         }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
         return this;
     }
 
-    /* ROTATION */
     public PacketEntity updateRotation(Player player) {
         return updateRotation(player, rotationYaw, rotationPitch);
     }
 
     public PacketEntity updateRotation(Player player, float yaw, float pitch) {
         if (pitch == -1 && yaw == -1) return this;
-
-        PacketContainer packet = PacketUtils.protocolManager.createPacket(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-
-        if (yaw != -1) {
-            packet.getBytes().write(0, (byte) (yaw * 256.0F / 360.0F));
-        }
-
-        if (pitch != -1) {
-            packet.getBytes().write(1, (byte) (pitch * 256.0F / 360.0F));
-        }
-
-        packet.getBooleans().write(0, true);
-        PacketUtils.sendPacket(player, packet);
+        PacketUtils.sendRotationPacket(player, entityId,
+                yaw != -1 ? yaw : 0,
+                pitch != -1 ? pitch : 0);
         return this;
     }
 
-    /* Velocity */
     public PacketEntity updateVelocity(Player player) {
         return updateVelocity(player, velocity);
     }
 
     public PacketEntity updateVelocity(Player player, Vector vector) {
         if (vector == null) return this;
-
-        PacketContainer packet = PacketUtils.protocolManager.createPacket(PacketType.Play.Server.ENTITY_VELOCITY);
-        packet.getIntegers().write(0, entityId);
-        packet.getIntegers().write(1, PacketUtils.convertVelocity(vector.getX()));
-        packet.getIntegers().write(2, PacketUtils.convertVelocity(vector.getY()));
-        packet.getIntegers().write(3, PacketUtils.convertVelocity(vector.getZ()));
-        PacketUtils.sendPacket(player, packet);
+        PacketUtils.sendVelocityPacket(player, entityId, vector);
         return this;
     }
 
-    /* FLAGS */
     public PacketEntity updateEntityFlags(Player player) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    public PacketEntity updateEntityFlags(Player player, boolean fire, boolean crouching, boolean swimming, boolean sprinting, boolean invisible, boolean glowing, boolean elytraFlying) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
+    public PacketEntity updateEntityFlags(Player player, boolean fire, boolean crouching, boolean swimming,
+                                          boolean sprinting, boolean invisible, boolean glowing, boolean elytraFlying) {
         byte flags = 0;
         if (fire) flags += (byte) 0x01;
         if (crouching) flags += (byte) 0x02;
@@ -229,140 +182,121 @@ public class PacketEntity {
         if (glowing) flags += (byte) 0x40;
         if (elytraFlying) flags += (byte) 0x80;
 
-        PacketUtils.setMetadata(dataWatcher, 0, Byte.class, (byte) flags);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 0, EntityDataTypes.BYTE, flags);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    /* UPDATE FIRE FLAG */
     public PacketEntity updateFire(Player player, boolean fire) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE CROUCHING FLAG */
     public PacketEntity updateCrouching(Player player, boolean crouching) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE SWIMMING FLAG */
     public PacketEntity updateSwimming(Player player, boolean swimming) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE SPRINTING FLAG */
     public PacketEntity updateSprinting(Player player, boolean sprinting) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE INVISIBLE FLAG */
     public PacketEntity updateInvisible(Player player, boolean invisible) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE GLOWING FLAG */
     public PacketEntity updateGlowing(Player player, boolean glowing) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* UPDATE ELYTRA FLYING FLAG */
     public PacketEntity updateElytraFlying(Player player, boolean elytraFlying) {
         return updateEntityFlags(player, fire, crouching, swimming, sprinting, invisible, glowing, elytraFlying);
     }
 
-    /* AIR TICKS */
     public PacketEntity updateAirTicks(Player player) {
         return updateAirTicks(player, airTicks);
     }
 
     public PacketEntity updateAirTicks(Player player, int airTicks) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        PacketUtils.setMetadata(dataWatcher, 1, Integer.class, airTicks);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 1, EntityDataTypes.INT, airTicks);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-
-    /* SHOW NAME */
     public PacketEntity updateShowName(Player player) {
         return updateShowName(player, showName);
     }
 
     public PacketEntity updateShowName(Player player, boolean showName) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (showName) PacketUtils.setMetadata(dataWatcher, 3, Boolean.class, true);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 3, EntityDataTypes.BOOLEAN, showName);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    /* SILENT */
     public PacketEntity updateSilent(Player player) {
         return updateSilent(player, silent);
     }
 
     public PacketEntity updateSilent(Player player, boolean silent) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (silent) PacketUtils.setMetadata(dataWatcher, 4, Boolean.class, true);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 4, EntityDataTypes.BOOLEAN, silent);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    /* NO GRAVITY */
     public PacketEntity updateNoGravity(Player player) {
         return updateNoGravity(player, gravity);
     }
 
     public PacketEntity updateNoGravity(Player player, boolean noGravity) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (noGravity) PacketUtils.setMetadata(dataWatcher, 5, Boolean.class, true);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 5, EntityDataTypes.BOOLEAN, !noGravity);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    /* TICKS FROZEN */
     public PacketEntity updateTicksFrozen(Player player) {
         return updateTicksFrozen(player, ticksFrozen);
     }
 
     public PacketEntity updateTicksFrozen(Player player, int ticksFrozen) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (ticksFrozen != 0) PacketUtils.setMetadata(dataWatcher, 6, Integer.class, ticksFrozen);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 6, EntityDataTypes.INT, ticksFrozen);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
     public PacketEntity updateSlimeSize(Player player, int size) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        PacketUtils.setMetadata(dataWatcher, 16, Integer.class, size);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(entityId, dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 16, EntityDataTypes.INT, size);
+        PacketUtils.sendMetadataPacket(player, entityId, metadata);
         return this;
     }
 
-    public PacketEntity addEquipment(Pair<EnumWrappers.ItemSlot, ItemStack>... equipment) {
-        this.equipment.addAll(Arrays.asList(equipment));
+    // ── Equipment setters ─────────────────────────────────────────────────────
+
+    @SafeVarargs
+    public final PacketEntity addEquipment(PacketEquipmentEntry... entries) {
+        this.equipment.addAll(Arrays.asList(entries));
         return this;
     }
 
-    public PacketEntity addEquipment(Pair<EnumWrappers.ItemSlot, ItemStack> equipment) {
-        this.equipment.add(equipment);
+    public PacketEntity addEquipment(PacketEquipmentEntry entry) {
+        this.equipment.add(entry);
         return this;
     }
 
-    public PacketEntity setEquipment(List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipment) {
+    public PacketEntity setEquipment(List<PacketEquipmentEntry> equipment) {
         this.equipment = equipment;
         return this;
     }
+
+    // ── Fluent setters ────────────────────────────────────────────────────────
 
     public PacketEntity setInvisible(boolean invisible) {
         this.invisible = invisible;
@@ -459,5 +393,4 @@ public class PacketEntity {
         this.airTicks = airTicks;
         return this;
     }
-
 }

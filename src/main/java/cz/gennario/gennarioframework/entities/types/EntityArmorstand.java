@@ -1,14 +1,13 @@
 package cz.gennario.gennarioframework.entities.types;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.Pair;
 import cz.gennario.gennarioframework.entities.PacketEntity;
 import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
+import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentEntry;
+import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentSlot;
 import cz.gennario.gennarioframework.utils.packet.types.PacketArmorStand;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +17,10 @@ public class EntityArmorstand extends PacketEntity {
 
     private PacketArmorStand packetArmorStand;
 
-    private List<Pair<EnumWrappers.ItemSlot, ItemDisplayPlayerItem>> equipment;
+    private List<EquipmentDef> equipment;
     private List<Player> hiddenPlayers = new ArrayList<>();
 
-    public EntityArmorstand(Location location, EntityVisiblity entityVisiblity, Pair<EnumWrappers.ItemSlot, ItemDisplayPlayerItem>... equipment) {
+    public EntityArmorstand(Location location, EntityVisiblity entityVisiblity, EquipmentDef... equipment) {
         super(-1, EntityType.ITEM_DISPLAY, entityVisiblity, false, 0, 40);
         this.equipment = new ArrayList<>(List.of(equipment));
         packetArmorStand = new PacketArmorStand();
@@ -31,7 +30,7 @@ public class EntityArmorstand extends PacketEntity {
 
     @Override
     public void spawn(Player player) {
-        if(getPacketVisiblityCondition() != null) {
+        if (getPacketVisiblityCondition() != null) {
             if (!getPacketVisiblityCondition().canSee(player)) {
                 if (new ArrayList<>(hiddenPlayers).contains(player)) {
                     destroy(player);
@@ -45,14 +44,10 @@ public class EntityArmorstand extends PacketEntity {
             return;
         }
 
-        List<Pair<EnumWrappers.ItemSlot, ItemStack>> newEquipment = new ArrayList<>();
-        for (Pair<EnumWrappers.ItemSlot, ItemDisplayPlayerItem> pair : equipment) {
-            newEquipment.add(new Pair<>(pair.getFirst(), pair.getSecond().getItemStack(player)));
-        }
-        packetArmorStand.setEquipment(newEquipment);
+        packetArmorStand.setEquipment(resolveEquipment(player));
         packetArmorStand.spawn(player);
 
-        if(getPacketEntitySpawnOverwrite() != null) {
+        if (getPacketEntitySpawnOverwrite() != null) {
             getPacketEntitySpawnOverwrite().spawnOverwrite(player);
         }
 
@@ -62,7 +57,6 @@ public class EntityArmorstand extends PacketEntity {
     @Override
     public void destroy(Player player) {
         packetArmorStand.delete(player);
-
         removeSpawnedPlayer(player);
     }
 
@@ -81,11 +75,7 @@ public class EntityArmorstand extends PacketEntity {
 
     @Override
     public void update(Player player) {
-        List<Pair<EnumWrappers.ItemSlot, ItemStack>> newEquipment = new ArrayList<>();
-        for (Pair<EnumWrappers.ItemSlot, ItemDisplayPlayerItem> pair : equipment) {
-            newEquipment.add(new Pair<>(pair.getFirst(), pair.getSecond().getItemStack(player)));
-        }
-        packetArmorStand.setEquipment(newEquipment);
+        packetArmorStand.setEquipment(resolveEquipment(player));
         packetArmorStand.spawn(player);
     }
 
@@ -95,25 +85,12 @@ public class EntityArmorstand extends PacketEntity {
     }
 
     public void updateItemStack(Player player) {
-        List<Pair<EnumWrappers.ItemSlot, ItemStack>> newEquipment = new ArrayList<>();
-        for (Pair<EnumWrappers.ItemSlot, ItemDisplayPlayerItem> pair : equipment) {
-            newEquipment.add(new Pair<>(pair.getFirst(), pair.getSecond().getItemStack(player)));
-        }
-        packetArmorStand.setEquipment(newEquipment);
+        packetArmorStand.setEquipment(resolveEquipment(player));
         packetArmorStand.updateEquipment(player);
     }
 
-    public enum EquipmentSlot {
-        MAINHAND,
-        OFFHAND,
-        FEET,
-        LEGS,
-        CHEST,
-        HEAD
-    }
-
-    public void addEquipment(EquipmentSlot equipmentSlot, ItemDisplayPlayerItem itemDisplayPlayerItem) {
-        equipment.add(new Pair<>(EnumWrappers.ItemSlot.valueOf(equipmentSlot.name()), itemDisplayPlayerItem));
+    public void addEquipment(PacketEquipmentSlot slot, ItemDisplayPlayerItem item) {
+        equipment.add(new EquipmentDef(slot, item));
     }
 
     public void updateItemStack(Player... players) {
@@ -135,4 +112,14 @@ public class EntityArmorstand extends PacketEntity {
         hiddenPlayers.remove(player);
         packetArmorStand.spawn(player);
     }
+
+    private List<PacketEquipmentEntry> resolveEquipment(Player player) {
+        List<PacketEquipmentEntry> result = new ArrayList<>();
+        for (EquipmentDef def : equipment) {
+            result.add(new PacketEquipmentEntry(def.slot(), def.item().getItemStack(player)));
+        }
+        return result;
+    }
+
+    public record EquipmentDef(PacketEquipmentSlot slot, ItemDisplayPlayerItem item) {}
 }

@@ -7,7 +7,6 @@ import cz.gennario.gennarioframework.utils.*;
 import cz.gennario.gennarioframework.utils.config.Config;
 import cz.gennario.gennarioframework.utils.cooldown.CooldownUtil;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
-import cz.gennario.gennarioframework.utils.packet.backend.PacketBackendMode;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -50,17 +49,6 @@ public final class Main extends JavaPlugin {
             colorFormat = ColorFormat.GENNARIO_FORMAT;
         }
 
-        PacketBackendMode backendMode = PacketBackendMode.fromString(
-                yamlDocument.getString("packet-backend.mode"),
-                PacketBackendMode.AUTO
-        );
-        PacketBackendMode autoPriority = PacketBackendMode.fromString(
-                yamlDocument.getString("packet-backend.auto-priority"),
-                PacketBackendMode.PROTOCOLLIB
-        );
-        boolean fallbackEnabled = yamlDocument.getBoolean("packet-backend.fallback-enabled", true);
-
-        PacketUtils.configureBackend(backendMode, fallbackEnabled, autoPriority);
         PacketUtils.init();
         checkVersionAdapter();
 

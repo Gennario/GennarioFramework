@@ -1,13 +1,11 @@
 package cz.gennario.gennarioframework.utils.packet.backend;
 
-import com.comphenix.protocol.events.PacketContainer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.player.PlayerManager;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
@@ -21,11 +19,6 @@ import java.util.List;
 public class PacketEventsPacketBackend implements PacketBackend {
 
     private PacketListenerAbstract clickListener;
-
-    @Override
-    public PacketBackendMode mode() {
-        return PacketBackendMode.PACKETEVENTS;
-    }
 
     @Override
     public boolean isAvailable() {
@@ -102,7 +95,6 @@ public class PacketEventsPacketBackend implements PacketBackend {
             InteractionHand hand = wrapper.getHand();
             boolean hasTarget = wrapper.getTarget().isPresent();
 
-            // On some protocol builds ATTACK can arrive without a valid hand/target decode.
             if (hand == null && !hasTarget) {
                 return shift ? PacketClickType.SHIFT_LEFT : PacketClickType.LEFT;
             }
@@ -111,40 +103,5 @@ public class PacketEventsPacketBackend implements PacketBackend {
         }
 
         return null;
-    }
-
-    @Override
-    public void sendPacket(Player player, PacketContainer packet) {
-        if (!isAvailable()) {
-            throw new IllegalStateException("PacketEvents plugin is not enabled.");
-        }
-
-        PlayerManager playerManager = PacketEvents.getAPI().getPlayerManager();
-        Object nmsPacket = packet.getHandle();
-
-        Throwable firstFailure = null;
-        if (nmsPacket != null) {
-            try {
-                playerManager.sendPacket(player, nmsPacket);
-                return;
-            } catch (Throwable t) {
-                firstFailure = t;
-            }
-        }
-
-        try {
-            Object serialized = packet.serializeToBuffer();
-            if (serialized != null) {
-                playerManager.sendPacket(player, serialized);
-                return;
-            }
-        } catch (Throwable t) {
-            if (firstFailure == null) {
-                firstFailure = t;
-            }
-        }
-
-        String reason = firstFailure == null ? "unknown" : String.valueOf(firstFailure.getMessage());
-        throw new IllegalStateException("PacketEvents failed to send packet type " + packet.getType() + ": " + reason, firstFailure);
     }
 }

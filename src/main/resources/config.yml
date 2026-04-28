@@ -1,13 +1,5 @@
-config-version: 3
+config-version: 4
 version-adapter: AUTO
-
-packet-backend:
-  # AUTO | PROTOCOLLIB | PACKETEVENTS
-  mode: AUTO
-  # Priority used only when mode is AUTO and both backends are available.
-  auto-priority: PACKETEVENTS
-  # If selected backend is unavailable, plugin falls back to ProtocolLib when possible.
-  fallback-enabled: true
 
 # Supported formats:
 # - GENNARIO_FORMAT - original format

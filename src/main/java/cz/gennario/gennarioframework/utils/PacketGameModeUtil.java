@@ -1,47 +1,42 @@
 package cz.gennario.gennarioframework.utils;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.PlayerInfoData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.UserProfile;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 public final class PacketGameModeUtil {
 
-    public static void setPacketGameModeForEveryone(Player manipulated, GameMode gameMode) {
+    public static void setPacketGameModeForEveryone(Player manipulated, org.bukkit.GameMode gameMode) {
         setPacketGameMode(manipulated, gameMode, Bukkit.getOnlinePlayers().toArray(new Player[0]));
     }
 
-    public static void setPacketGameMode(Player manipulated, GameMode gameMode, Player... players) {
-        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+    public static void setPacketGameMode(Player manipulated, org.bukkit.GameMode gameMode, Player... players) {
+        UserProfile profile = new UserProfile(manipulated.getUniqueId(), manipulated.getName());
 
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-        packet.getPlayerInfoActions().writeSafely(0, Collections.singleton(EnumWrappers.PlayerInfoAction.UPDATE_GAME_MODE));
-
-        WrappedGameProfile profile = WrappedGameProfile.fromPlayer(manipulated);
-        PlayerInfoData playerInfoData = new PlayerInfoData(
+        WrapperPlayServerPlayerInfoUpdate.PlayerInfo info = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(
                 profile,
-                0,
-                EnumWrappers.NativeGameMode.fromBukkit(gameMode),
-                WrappedChatComponent.fromText(manipulated.getDisplayName())
+                true,
+                manipulated.getPing(),
+                SpigotConversionUtil.fromBukkitGameMode(gameMode),
+                null,
+                null
         );
 
-        List<PlayerInfoData> list = List.of(playerInfoData);
-        packet.getPlayerInfoDataLists().write(1, list);
+        WrapperPlayServerPlayerInfoUpdate packet = new WrapperPlayServerPlayerInfoUpdate(
+                EnumSet.of(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE),
+                List.of(info)
+        );
 
-        for (Player onlinePlayer : players) {
-            if(onlinePlayer != manipulated)
-                protocolManager.sendServerPacket(onlinePlayer, packet);
+        for (Player observer : players) {
+            if (observer != manipulated) {
+                PacketEvents.getAPI().getPlayerManager().sendPacket(observer, packet);
+            }
         }
     }
-
 }

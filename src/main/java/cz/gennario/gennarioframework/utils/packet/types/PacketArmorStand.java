@@ -1,9 +1,8 @@
 package cz.gennario.gennarioframework.utils.packet.types;
 
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.Vector3F;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import cz.gennario.gennarioframework.utils.Utils;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
+import com.github.retrooper.packetevents.util.Vector3f;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.entity.PacketEntity;
 import lombok.Getter;
@@ -11,6 +10,8 @@ import lombok.Setter;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.EulerAngle;
+
+import java.util.List;
 
 @Setter
 @Getter
@@ -28,260 +29,127 @@ public class PacketArmorStand extends PacketEntity {
     }
 
     public void spawn(Player player) {
-        /* DATA WATCHER */
-        /*PacketContainer packetContainer = PacketUtils.spawnEntityPacket(EntityType.ARMOR_STAND, getLocation(), getEntityId(), getVelocity());
-        if (getRotationYaw() != -1 || getRotationPitch() != -1) {
-            if (getRotationPitch() != -1) entityPacketContainer.getBytes().write(0, (byte) (getRotationPitch() * 256.0F / 360.0F));
-            if (getRotationYaw() != -1) entityPacketContainer.getBytes().write(1, (byte) (getRotationYaw() * 256.0F / 360.0F));
-        }*/
-
-        PacketUtils.sendPacket(player, getEntity(EntityType.ARMOR_STAND));
-
+        sendSpawn(player, EntityType.ARMOR_STAND);
         updateArmorStand(player);
     }
 
     protected void updateArmorStand(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        super.updateEntity(player, dataWatcher);
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        super.updateEntity(player, metadata);
 
         byte flags = 0;
         if (small) flags += (byte) 0x01;
         if (arms) flags += (byte) 0x04;
         if (!baseplate) flags += (byte) 0x08;
-        if (marker) flags += (byte) 0x08;
+        if (marker) flags += (byte) 0x10;
 
-        if (Utils.versionIsAfter(16)) {
-            PacketUtils.setMetadata(dataWatcher, 15, Byte.class, flags);
-        } else if(Utils.versionIsAfterOrEqual(15)) {
-            PacketUtils.setMetadata(dataWatcher, 14, Byte.class, flags);
-        } else {
-            PacketUtils.setMetadata(dataWatcher, 11, Byte.class, flags);
-        }
+        PacketUtils.addMetadata(metadata, 15, EntityDataTypes.BYTE, flags);
 
-        if (headRotation != null) {
-            int id = 16;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 12;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(headRotation.getX()), (float) Math.toDegrees(headRotation.getY()), (float) Math.toDegrees(headRotation.getZ())));
-        }
-        if (bodyRotation != null) {
-            int id = 17;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 13;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(bodyRotation.getX()), (float) Math.toDegrees(bodyRotation.getY()), (float) Math.toDegrees(bodyRotation.getZ())));
-        }
-        if (leftArmRotation != null) {
-            int id = 18;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 14;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftArmRotation.getX()), (float) Math.toDegrees(leftArmRotation.getY()), (float) Math.toDegrees(leftArmRotation.getZ())));
-        }
-        if (rightArmRotation != null) {
-            int id = 19;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 15;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightArmRotation.getX()), (float) Math.toDegrees(rightArmRotation.getY()), (float) Math.toDegrees(rightArmRotation.getZ())));
-        }
-        if (leftArmRotation != null) {
-            int id = 20;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 16;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftLegRotation.getX()), (float) Math.toDegrees(leftLegRotation.getY()), (float) Math.toDegrees(leftLegRotation.getZ())));
-        }
-        if (rightLegRotation != null) {
-            int id = 21;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 17;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightLegRotation.getX()), (float) Math.toDegrees(rightLegRotation.getY()), (float) Math.toDegrees(rightLegRotation.getZ())));
-        }
+        if (headRotation != null) PacketUtils.addMetadata(metadata, 16, EntityDataTypes.ROTATION, toVec(headRotation));
+        if (bodyRotation != null) PacketUtils.addMetadata(metadata, 17, EntityDataTypes.ROTATION, toVec(bodyRotation));
+        if (leftArmRotation != null) PacketUtils.addMetadata(metadata, 18, EntityDataTypes.ROTATION, toVec(leftArmRotation));
+        if (rightArmRotation != null) PacketUtils.addMetadata(metadata, 19, EntityDataTypes.ROTATION, toVec(rightArmRotation));
+        if (leftLegRotation != null) PacketUtils.addMetadata(metadata, 20, EntityDataTypes.ROTATION, toVec(leftLegRotation));
+        if (rightLegRotation != null) PacketUtils.addMetadata(metadata, 21, EntityDataTypes.ROTATION, toVec(rightLegRotation));
 
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
     }
 
-    /* UPDATE BODY */
     public void updateBody(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
 
-        if (headRotation != null) {
-            int id = 16;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 12;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(headRotation.getX()), (float) Math.toDegrees(headRotation.getY()), (float) Math.toDegrees(headRotation.getZ())));
-        }
-        if (bodyRotation != null) {
-            int id = 17;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 13;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(bodyRotation.getX()), (float) Math.toDegrees(bodyRotation.getY()), (float) Math.toDegrees(bodyRotation.getZ())));
-        }
-        if (leftArmRotation != null) {
-            int id = 18;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 14;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftArmRotation.getX()), (float) Math.toDegrees(leftArmRotation.getY()), (float) Math.toDegrees(leftArmRotation.getZ())));
-        }
-        if (rightArmRotation != null) {
-            int id = 19;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 15;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightArmRotation.getX()), (float) Math.toDegrees(rightArmRotation.getY()), (float) Math.toDegrees(rightArmRotation.getZ())));
-        }
-        if (leftArmRotation != null) {
-            int id = 20;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 16;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftLegRotation.getX()), (float) Math.toDegrees(leftLegRotation.getY()), (float) Math.toDegrees(leftLegRotation.getZ())));
-        }
-        if (rightLegRotation != null) {
-            int id = 21;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 17;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightLegRotation.getX()), (float) Math.toDegrees(rightLegRotation.getY()), (float) Math.toDegrees(rightLegRotation.getZ())));
-        }
+        if (headRotation != null) PacketUtils.addMetadata(metadata, 16, EntityDataTypes.ROTATION, toVec(headRotation));
+        if (bodyRotation != null) PacketUtils.addMetadata(metadata, 17, EntityDataTypes.ROTATION, toVec(bodyRotation));
+        if (leftArmRotation != null) PacketUtils.addMetadata(metadata, 18, EntityDataTypes.ROTATION, toVec(leftArmRotation));
+        if (rightArmRotation != null) PacketUtils.addMetadata(metadata, 19, EntityDataTypes.ROTATION, toVec(rightArmRotation));
+        if (leftLegRotation != null) PacketUtils.addMetadata(metadata, 20, EntityDataTypes.ROTATION, toVec(leftLegRotation));
+        if (rightLegRotation != null) PacketUtils.addMetadata(metadata, 21, EntityDataTypes.ROTATION, toVec(rightLegRotation));
 
-        PacketContainer packet1 = PacketUtils.applyMetadata(getEntityId(), dataWatcher);
-        PacketUtils.sendPacket(player, packet1);
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
     }
 
-    /* UPDATE HEAD ROTATION */
     public PacketArmorStand updateHeadRotation(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (headRotation != null) {
-            int id = 16;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 12;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(headRotation.getX()), (float) Math.toDegrees(headRotation.getY()), (float) Math.toDegrees(headRotation.getZ())));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        if (headRotation == null) return this;
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 16, EntityDataTypes.ROTATION, toVec(headRotation));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE BODY ROTATION */
     public PacketArmorStand updateBodyRotation(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (bodyRotation != null) {
-            int id = 17;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 13;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(bodyRotation.getX()), (float) Math.toDegrees(bodyRotation.getY()), (float) Math.toDegrees(bodyRotation.getZ())));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        if (bodyRotation == null) return this;
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 17, EntityDataTypes.ROTATION, toVec(bodyRotation));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE LEFT ARM ROTATION */
     public PacketArmorStand updateLeftArmRotation(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (leftArmRotation != null) {
-            int id = 18;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 14;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftArmRotation.getX()), (float) Math.toDegrees(leftArmRotation.getY()), (float) Math.toDegrees(leftArmRotation.getZ())));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        if (leftArmRotation == null) return this;
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 18, EntityDataTypes.ROTATION, toVec(leftArmRotation));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE RIGHT ARM ROTATION */
     public PacketArmorStand updateRightArmRotation(Player player) {
-        updateRightArmRotation(player, rightArmRotation.getX(), rightArmRotation.getY(), rightArmRotation.getZ());
-        return this;
+        if (rightArmRotation == null) return this;
+        return updateRightArmRotation(player, rightArmRotation.getX(), rightArmRotation.getY(), rightArmRotation.getZ());
     }
 
     public PacketArmorStand updateRightArmRotation(Player player, double rotationX, double rotationY, double rotationZ) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (rightArmRotation != null) {
-            int id = 19;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 15;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rotationX), (float) Math.toDegrees(rotationY), (float) Math.toDegrees(rotationZ)));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 19, EntityDataTypes.ROTATION,
+                new Vector3f((float) Math.toDegrees(rotationX), (float) Math.toDegrees(rotationY), (float) Math.toDegrees(rotationZ)));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE LEFT LEG ROTATION */
     public PacketArmorStand updateLeftLegRotation(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (leftArmRotation != null) {
-            int id = 20;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 16;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(leftLegRotation.getX()), (float) Math.toDegrees(leftLegRotation.getY()), (float) Math.toDegrees(leftLegRotation.getZ())));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        if (leftLegRotation == null) return this;
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 20, EntityDataTypes.ROTATION, toVec(leftLegRotation));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE RIGHT LEG ROTATION */
     public PacketArmorStand updateRightLegRotation(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
-        if (rightLegRotation != null) {
-            int id = 21;
-            if (Utils.versionIsBeforeOrEqual(16)) id = id - 1;
-            if (Utils.versionIsBeforeOrEqual(14)) id = 17;
-            PacketUtils.setMetadata(dataWatcher, id, Vector3F.getMinecraftClass(), new Vector3F((float) Math.toDegrees(rightLegRotation.getX()), (float) Math.toDegrees(rightLegRotation.getY()), (float) Math.toDegrees(rightLegRotation.getZ())));
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        if (rightLegRotation == null) return this;
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 21, EntityDataTypes.ROTATION, toVec(rightLegRotation));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* FLAGS */
     public PacketArmorStand updateArmorStandFlags(Player player, boolean small, boolean arms, boolean baseplate, boolean marker) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-
         byte flags = 0;
         if (small) flags += (byte) 0x01;
         if (arms) flags += (byte) 0x04;
         if (!baseplate) flags += (byte) 0x08;
-        if (marker) flags += (byte) 0x08;
+        if (marker) flags += (byte) 0x10;
 
-        if (Utils.versionIsAfter(16)) {
-            PacketUtils.setMetadata(dataWatcher, 15, Byte.class, flags);
-        } else if(Utils.versionIsAfterOrEqual(15)) {
-            PacketUtils.setMetadata(dataWatcher, 14, Byte.class, flags);
-        } else {
-            PacketUtils.setMetadata(dataWatcher, 11, Byte.class, flags);
-        }
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        PacketUtils.addMetadata(metadata, 15, EntityDataTypes.BYTE, flags);
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* UPDATE SMALL */
     public PacketArmorStand updateSmall(Player player, boolean small) {
         return updateArmorStandFlags(player, small, arms, baseplate, marker);
     }
 
-    /* UPDATE ARMS */
     public PacketArmorStand updateArms(Player player, boolean arms) {
         return updateArmorStandFlags(player, small, arms, baseplate, marker);
     }
 
-    /* UPDATE BASEPLATE */
     public PacketArmorStand updateBaseplate(Player player, boolean baseplate) {
         return updateArmorStandFlags(player, small, arms, baseplate, marker);
     }
 
-    /* UPDATE MARKER */
     public PacketArmorStand updateMarker(Player player, boolean marker) {
         return updateArmorStandFlags(player, small, arms, baseplate, marker);
     }
 
-    /* MOVE LOCATION */
     public PacketArmorStand setSmall(boolean small) {
         this.small = small;
         return this;
@@ -325,5 +193,13 @@ public class PacketArmorStand extends PacketEntity {
     public PacketArmorStand setRightLegRotation(EulerAngle rightLegRotation) {
         this.rightLegRotation = rightLegRotation;
         return this;
+    }
+
+    private static Vector3f toVec(EulerAngle angle) {
+        return new Vector3f(
+                (float) Math.toDegrees(angle.getX()),
+                (float) Math.toDegrees(angle.getY()),
+                (float) Math.toDegrees(angle.getZ())
+        );
     }
 }

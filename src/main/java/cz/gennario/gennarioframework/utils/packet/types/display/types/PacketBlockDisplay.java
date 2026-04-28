@@ -1,7 +1,7 @@
 package cz.gennario.gennarioframework.utils.packet.types.display.types;
 
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import cz.gennario.gennarioframework.Main;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import cz.gennario.gennarioframework.utils.packet.PacketUtils;
 import cz.gennario.gennarioframework.utils.packet.types.display.PacketDisplay;
 import lombok.Getter;
@@ -11,14 +11,14 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+
 @Setter
 @Getter
 public class PacketBlockDisplay extends PacketDisplay {
 
-    /* For hide & show */
     protected BlockData saveBlockData;
 
-    /* Others */
     private BlockData blockData;
     private Material blockMaterial;
 
@@ -27,54 +27,44 @@ public class PacketBlockDisplay extends PacketDisplay {
     }
 
     public void spawn(Player player) {
-        /* DATA WATCHER */
-        WrappedDataWatcher dataWatcher = getDisplay(player, EntityType.BLOCK_DISPLAY);
-
-        update(player, dataWatcher);
+        List<EntityData<?>> metadata = getDisplay(player, EntityType.BLOCK_DISPLAY);
+        update(player, metadata);
     }
 
     public void update(Player player) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        update(player, dataWatcher);
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        update(player, metadata);
     }
 
-    private void update(Player player, WrappedDataWatcher dataWatcher) {
-        WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
-        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockData);
-        if (blockMaterial != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockMaterial.createBlockData());
+    private void update(Player player, List<EntityData<?>> metadata) {
+        BlockData bd = blockData != null ? blockData : (blockMaterial != null ? blockMaterial.createBlockData() : null);
+        if (bd != null) PacketUtils.addMetadata(metadata, 23+versionOverwrite(player), EntityDataTypes.BLOCK_STATE,
+                PacketUtils.getBlockStateId(bd));
 
-        /* SEND PACKET */
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
     }
 
-    /* HIDE BLOCK DISPLAY */
     public void hideDisplay(Player player) {
         this.saveBlockData = blockData;
         updateBlockMaterial(player, Material.AIR);
     }
 
-    /* SHOW BLOCK DISPLAY */
     public void showDisplay(Player player) {
         updateBlockData(player, saveBlockData);
     }
 
-    /* UPDATE SPECIFIC THINGS */
-
-    /* BLOCK DATA */
     public PacketBlockDisplay updateBlockData(Player player) {
         return updateBlockData(player, blockData);
     }
 
     public PacketBlockDisplay updateBlockData(Player player, BlockData blockData) {
-        WrappedDataWatcher dataWatcher = PacketUtils.getDataWatcher();
-        WrappedDataWatcher.Serializer serializer = getBlockDataSerializer();
-        if (blockData != null) PacketUtils.setMetadata(dataWatcher, 23+versionOverwrite(player), serializer, blockData);
-
-        PacketUtils.sendPacket(player, PacketUtils.applyMetadata(getEntityId(), dataWatcher));
+        List<EntityData<?>> metadata = PacketUtils.createMetadata();
+        if (blockData != null) PacketUtils.addMetadata(metadata, 23+versionOverwrite(player), EntityDataTypes.BLOCK_STATE,
+                PacketUtils.getBlockStateId(blockData));
+        PacketUtils.sendMetadataPacket(player, getEntityId(), metadata);
         return this;
     }
 
-    /* MATERIAL */
     public PacketBlockDisplay updateBlockMaterial(Player player) {
         return updateBlockData(player, blockMaterial.createBlockData());
     }
@@ -83,7 +73,6 @@ public class PacketBlockDisplay extends PacketDisplay {
         return updateBlockData(player, material.createBlockData());
     }
 
-    /* SETTER */
     public PacketBlockDisplay setBlockData(BlockData blockData) {
         this.blockData = blockData;
         return this;
@@ -93,26 +82,6 @@ public class PacketBlockDisplay extends PacketDisplay {
         this.blockMaterial = blockMaterial;
         this.blockData = blockMaterial.createBlockData();
         return this;
-    }
-
-    /**
-     * Gets the correct BlockData serializer for the current server version
-     * Fixes compatibility issues with 1.21+
-     */
-    private WrappedDataWatcher.Serializer getBlockDataSerializer() {
-        try {
-            // Try 1.21+ method first
-            return WrappedDataWatcher.Registry.get(BlockData.class);
-        } catch (Exception e) {
-            // Fallback na starší verze
-            try {
-                return WrappedDataWatcher.Registry.getBlockDataSerializer(false);
-            } catch (Exception e2) {
-                Main.getInstance().getLogger().warning("Nelze získat BlockData serializer: " + e2.getMessage());
-                // Last resort fallback
-                return WrappedDataWatcher.Registry.getBlockDataSerializer(true);
-            }
-        }
     }
 
     public int versionOverwrite() {

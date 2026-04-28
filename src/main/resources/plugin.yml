@@ -4,9 +4,9 @@ main: cz.gennario.gennarioframework.Main
 api-version: '1.20'
 folia-supported: true
 author: Gennario
-softdepend:
+depend:
   - packetevents
-  - ProtocolLib
+softdepend:
   - Nexo
   - ItemsAdder
   - Oraxen

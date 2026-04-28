@@ -53,6 +53,7 @@ cz/gennario/gennarioframework/commands/platform/CommandDispatcher$1.class
 cz/gennario/gennarioframework/utils/placeholder/PlaceholderSegment$SegmentType.class
 cz/gennario/gennarioframework/utils/discord/WebhookConfigBuilder.class
 cz/gennario/gennarioframework/utils/FoliaScheduler$WrappedTask.class
+cz/gennario/gennarioframework/entities/types/EntityArmorstand$EquipmentDef.class
 cz/gennario/gennarioframework/utils/commands/CommandResponse.class
 cz/gennario/gennarioframework/utils/centermessage/DefaultFontInfo.class
 cz/gennario/gennarioframework/utils/OutlineUtils.class
@@ -69,7 +70,6 @@ cz/gennario/gennarioframework/mysql/SQLTable.class
 cz/gennario/gennarioframework/world/WorldConfigBuilder.class
 cz/gennario/gennarioframework/utils/ColorFormat.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$TextDisplay.class
-cz/gennario/gennarioframework/utils/packet/backend/ProtocolLibPacketBackend$1.class
 cz/gennario/gennarioframework/utils/items/ItemStackToConfig.class
 cz/gennario/gennarioframework/utils/packet/backend/PacketBackendMode.class
 cz/gennario/gennarioframework/mysql/PolySQL.class
@@ -105,7 +105,6 @@ cz/gennario/gennarioframework/utils/Cuboid$CuboidIterator.class
 cz/gennario/gennarioframework/mysql/SQLTable$TopSortDirection.class
 cz/gennario/gennarioframework/utils/commands/CommandSettings.class
 cz/gennario/gennarioframework/utilcommands/LocationCommand.class
-cz/gennario/gennarioframework/utils/packet/backend/ProtocolLibPacketBackend$2.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$ContainerComponent.class
 cz/gennario/gennarioframework/gui/containers/GUITabsContainer.class
 cz/gennario/gennarioframework/commands/CommandMessages.class
@@ -181,7 +180,6 @@ cz/gennario/gennarioframework/entities/PacketVisiblityCondition.class
 cz/gennario/gennarioframework/utils/cooldown/PlayerCooldownInstance.class
 cz/gennario/gennarioframework/commands/argument/DoubleArgument.class
 cz/gennario/gennarioframework/utils/StringReader.class
-cz/gennario/gennarioframework/utils/packet/backend/ProtocolLibPacketBackend.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$SelectOption.class
 cz/gennario/gennarioframework/mysql/SQLAutoSaveTask.class
 cz/gennario/gennarioframework/entities/PacketEntityOptionalData.class
@@ -209,7 +207,6 @@ cz/gennario/gennarioframework/utils/packet/types/PacketInteraction.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$Button.class
 cz/gennario/gennarioframework/commands/argument/LongArgument.class
 cz/gennario/gennarioframework/gui/components/ManipulableComponent.class
-cz/gennario/gennarioframework/entities/types/EntityArmorstand$EquipmentSlot.class
 cz/gennario/gennarioframework/commands/platform/BrigadierCommandPlatform$1.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$StringSelectMenu.class
 cz/gennario/gennarioframework/gui/containers/GUIPagedContainer.class
@@ -221,6 +218,7 @@ cz/gennario/gennarioframework/utils/ItemLooper.class
 cz/gennario/gennarioframework/utils/packet/HeadEquipmentValue.class
 cz/gennario/gennarioframework/world/WorldType.class
 cz/gennario/gennarioframework/mysql/PolySQL$1.class
+cz/gennario/gennarioframework/utils/packet/types/display/types/PacketItemDisplay$1.class
 cz/gennario/gennarioframework/test/ResolutionSetupUtil.class
 cz/gennario/gennarioframework/utils/discord/DiscordWebhook$JSONObject.class
 cz/gennario/gennarioframework/utils/items/HeadItem.class
