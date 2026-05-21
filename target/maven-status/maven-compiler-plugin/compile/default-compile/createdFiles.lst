@@ -29,6 +29,7 @@ cz/gennario/gennarioframework/gui/GUIContainer.class
 cz/gennario/gennarioframework/utils/replacement/ReplacementPackage.class
 cz/gennario/gennarioframework/utils/discord/DiscordWebhook.class
 cz/gennario/gennarioframework/utils/packet/types/PacketSlime.class
+cz/gennario/gennarioframework/entities/types/EntityTextDisplay$PlayerOutlineInstance.class
 cz/gennario/gennarioframework/entities/PacketEntity$EntityVisiblity.class
 cz/gennario/gennarioframework/utils/items/ItemBuilder.class
 cz/gennario/gennarioframework/utils/packet/backend/PacketEventsPacketBackend$1.class
@@ -79,6 +80,7 @@ cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$ActionRowComponen
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$JSONObject$1.class
 cz/gennario/gennarioframework/commands/argument/WorldArgument.class
 cz/gennario/gennarioframework/entities/PacketEntity.class
+cz/gennario/gennarioframework/utils/packet/equipment/PacketEquipmentEntry.class
 cz/gennario/gennarioframework/utils/placeholder/Placeholder.class
 cz/gennario/gennarioframework/utils/ActionUtils.class
 cz/gennario/gennarioframework/utils/MinigameAdapter.class
@@ -129,6 +131,7 @@ cz/gennario/gennarioframework/commands/argument/ArgumentParseException.class
 cz/gennario/gennarioframework/entities/PacketEntityUtils$2.class
 cz/gennario/gennarioframework/utils/ItemLooper$ItemLooperCallback.class
 cz/gennario/gennarioframework/utils/MessagesUtil.class
+cz/gennario/gennarioframework/utils/packet/equipment/PacketEquipmentSlot.class
 cz/gennario/gennarioframework/utils/discord/DiscordWebhook$EmbedObject$Footer.class
 cz/gennario/gennarioframework/gui/GUISettings.class
 cz/gennario/gennarioframework/utils/discordv2/DiscordWebhookV2$JSONObject.class
