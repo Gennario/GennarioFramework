@@ -282,6 +282,12 @@ public abstract class PacketDisplay extends PacketEntity {
         List<EntityData<?>> metadata = PacketUtils.createMetadata();
         int o = versionOverwrite(player);
 
+        // Always send start_interpolation=0 (field 8) so the Minecraft client
+        // immediately commits the new transformation each tick.  Without this,
+        // after a despawn/re-spawn cycle the client can lose its interpolation
+        // state and never apply subsequent transformation updates.
+        PacketUtils.addMetadata(metadata, 8+o, EntityDataTypes.INT, 0);
+
         if (translation != null) PacketUtils.addMetadata(metadata, 11+o, EntityDataTypes.VECTOR3F, toVec(translation));
         if (scale != null) PacketUtils.addMetadata(metadata, 12+o, EntityDataTypes.VECTOR3F, toVec(scale));
         if (rotationLeft != null) PacketUtils.addMetadata(metadata, 13+o, EntityDataTypes.QUATERNION, toQuat(rotationLeft));

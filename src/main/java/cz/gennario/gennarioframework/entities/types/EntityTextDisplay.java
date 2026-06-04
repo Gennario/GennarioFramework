@@ -4,14 +4,15 @@ import cz.gennario.gennarioframework.entities.PacketEntity;
 import cz.gennario.gennarioframework.utils.Utils;
 import cz.gennario.gennarioframework.utils.packet.types.display.types.PacketTextDisplay;
 import cz.gennario.gennarioframework.utils.replacement.ReplacementPackage;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.joml.Vector3f;
+import org.joml.Quaternionf;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -35,6 +36,16 @@ public class EntityTextDisplay extends PacketEntity {
     private List<Player> hiddenPlayers = new ArrayList<>();
 
     private Location location;
+
+    // Base display transformation (applied to the main text and also to outline displays)
+    @Setter(AccessLevel.NONE)
+    private Vector3f translation = null;
+    @Setter(AccessLevel.NONE)
+    private Quaternionf rotationLeft = null;
+    @Setter(AccessLevel.NONE)
+    private Quaternionf rotationRight = null;
+    @Setter(AccessLevel.NONE)
+    private Vector3f displayScale = null;
 
     // Settings
     private double scale = 1;
@@ -65,14 +76,8 @@ public class EntityTextDisplay extends PacketEntity {
         if (!packetTextDisplays.containsKey(player)) {
             PacketTextDisplay packetTextDisplay = new PacketTextDisplay();
             packetTextDisplay.setLocation(location);
-            packetTextDisplay.setText(Utils.colorize(player, text.getText(player)).toArray(new String[0]));
-
-            // settings
-            packetTextDisplay.setScale(scale);
-            packetTextDisplay.setBillboard(billboard);
-            packetTextDisplay.setDefaultBackgroundColor(background);
-            if (backgroundColor != null) packetTextDisplay.setBackgroundColor(backgroundColor);
-            packetTextDisplay.setShadow(shadow);
+                applyDisplaySettings(packetTextDisplay, null);
+                packetTextDisplay.setText(Utils.colorize(player, text.getText(player)).toArray(new String[0]));
 
             packetTextDisplays.put(player, packetTextDisplay);
         }
@@ -100,6 +105,7 @@ public class EntityTextDisplay extends PacketEntity {
 
         PacketTextDisplay packetTextDisplay = getPacketTextDisplay(player);
 
+        applyDisplaySettings(packetTextDisplay, null);
         packetTextDisplay.setText(Utils.colorize(player, text.getText(player)).toArray(new String[0]));
         packetTextDisplay.spawn(player);
 
@@ -150,9 +156,7 @@ public class EntityTextDisplay extends PacketEntity {
         });
 
         if (outline) {
-            playerOutlineInstances.forEach((player, playerOutlineInstance) -> {
-                playerOutlineInstance.teleport();
-            });
+            playerOutlineInstances.forEach((player, playerOutlineInstance) -> playerOutlineInstance.teleport());
         }
     }
 
@@ -173,6 +177,7 @@ public class EntityTextDisplay extends PacketEntity {
     public void update(Player player) {
         PacketTextDisplay packetTextDisplay = getPacketTextDisplay(player);
 
+        applyDisplaySettings(packetTextDisplay, null);
         packetTextDisplay.update(player);
         packetTextDisplay.updateText(player, Utils.colorize(player, text.getText(player)).toArray(new String[0]));
 
@@ -193,10 +198,77 @@ public class EntityTextDisplay extends PacketEntity {
         for (Player player : new ArrayList<>(getSpawnedPlayers())) {
             PacketTextDisplay packetTextDisplay = getPacketTextDisplay(player);
 
+            applyDisplaySettings(packetTextDisplay, null);
             packetTextDisplay.setText(Utils.colorize(player, text.getText(player)).toArray(new String[0]));
 
             packetTextDisplay.update(player);
         }
+    }
+
+    public EntityTextDisplay setTranslation(Vector3f translation) {
+        this.translation = translation == null ? null : new Vector3f(translation);
+        return this;
+    }
+
+    public EntityTextDisplay setTranslation(float x, float y, float z) {
+        return setTranslation(new Vector3f(x, y, z));
+    }
+
+    public EntityTextDisplay setRotationLeft(Quaternionf rotationLeft) {
+        this.rotationLeft = rotationLeft == null ? null : new Quaternionf(rotationLeft);
+        return this;
+    }
+
+    public EntityTextDisplay setRotationRight(Quaternionf rotationRight) {
+        this.rotationRight = rotationRight == null ? null : new Quaternionf(rotationRight);
+        return this;
+    }
+
+    public EntityTextDisplay setDisplayScale(Vector3f displayScale) {
+        this.displayScale = displayScale == null ? null : new Vector3f(displayScale);
+        return this;
+    }
+
+    public EntityTextDisplay setDisplayScale(float x, float y, float z) {
+        return setDisplayScale(new Vector3f(x, y, z));
+    }
+
+    public EntityTextDisplay setDisplayScale(double x, double y, double z) {
+        return setDisplayScale((float) x, (float) y, (float) z);
+    }
+
+    public EntityTextDisplay transformation(Vector3f translation, Quaternionf rotationLeft, Vector3f displayScale, Quaternionf rotationRight) {
+        return setTranslation(translation)
+                .setRotationLeft(rotationLeft)
+                .setDisplayScale(displayScale)
+                .setRotationRight(rotationRight);
+    }
+
+    private void applyDisplaySettings(PacketTextDisplay packetTextDisplay, Vector3f extraTranslation) {
+        if (displayScale != null) {
+            packetTextDisplay.setScale(new Vector3f(displayScale));
+        } else {
+            packetTextDisplay.setScale(scale);
+        }
+        packetTextDisplay.setBillboard(billboard);
+        packetTextDisplay.setDefaultBackgroundColor(background);
+        if (backgroundColor != null) packetTextDisplay.setBackgroundColor(backgroundColor);
+        packetTextDisplay.setShadow(shadow);
+
+        Vector3f finalTranslation = null;
+        if (translation != null) {
+            finalTranslation = new Vector3f(translation);
+        }
+        if (extraTranslation != null) {
+            if (finalTranslation == null) {
+                finalTranslation = new Vector3f(extraTranslation);
+            } else {
+                finalTranslation.add(extraTranslation);
+            }
+        }
+        packetTextDisplay.setTranslation(finalTranslation);
+        packetTextDisplay.setRotationLeft(rotationLeft == null ? null : new Quaternionf(rotationLeft));
+        packetTextDisplay.setRotationRight(rotationRight == null ? null : new Quaternionf(rotationRight));
     }
 
     public EntityTextDisplay setText(String text) {
@@ -254,9 +326,9 @@ public class EntityTextDisplay extends PacketEntity {
     }
 
     public static class PlayerOutlineInstance {
-        private EntityTextDisplay entityTextDisplay;
-        private Player player;
-        private List<PacketTextDisplay> outlineDisplays;
+        private final EntityTextDisplay entityTextDisplay;
+        private final Player player;
+        private final List<PacketTextDisplay> outlineDisplays;
 
         public PlayerOutlineInstance(EntityTextDisplay entityTextDisplay, Player player) {
             this.entityTextDisplay = entityTextDisplay;
@@ -287,18 +359,8 @@ public class EntityTextDisplay extends PacketEntity {
             for (int i = 0; i < 4; i++) {
                 PacketTextDisplay packetTextDisplay = new PacketTextDisplay();
                 packetTextDisplay.setLocation(location1.clone());
-                packetTextDisplay.setScale(scale);
-                packetTextDisplay.setBillboard(entityTextDisplay.getBillboard());
-                packetTextDisplay.setDefaultBackgroundColor(false);
-                packetTextDisplay.setShadow(false);
                 packetTextDisplay.setText(texts.toArray(new String[0]));
-
-                switch (i) {
-                    case 0 -> packetTextDisplay.setTranslation(new Vector3f(offset, 0f, -0.01f));
-                    case 1 -> packetTextDisplay.setTranslation(new Vector3f(-offset, 0f, -0.01f));
-                    case 2 -> packetTextDisplay.setTranslation(new Vector3f(0f, offset, -0.01f));
-                    case 3 -> packetTextDisplay.setTranslation(new Vector3f(0f, -offset, -0.01f));
-                }
+                entityTextDisplay.applyDisplaySettings(packetTextDisplay, outlineOffset(i, offset));
 
                 outlineDisplays.add(packetTextDisplay);
             }
@@ -345,9 +407,22 @@ public class EntityTextDisplay extends PacketEntity {
 
                 texts.add(Utils.colorize(entityTextDisplay.getOutlineColor()+stripped));
             }
-            for (PacketTextDisplay outlineDisplay : outlineDisplays) {
-                outlineDisplay.updateText(player, texts.toArray(new String[0]));
+            for (int i = 0; i < outlineDisplays.size(); i++) {
+                PacketTextDisplay outlineDisplay = outlineDisplays.get(i);
+                outlineDisplay.setText(texts.toArray(new String[0]));
+                entityTextDisplay.applyDisplaySettings(outlineDisplay, outlineOffset(i, (float) (entityTextDisplay.getScale() * 0.02f)));
+                outlineDisplay.update(player);
             }
+        }
+
+        private Vector3f outlineOffset(int index, float offset) {
+            return switch (index) {
+                case 0 -> new Vector3f(offset, 0f, -0.025f);
+                case 1 -> new Vector3f(-offset, 0f, -0.025f);
+                case 2 -> new Vector3f(0f, offset, -0.025f);
+                case 3 -> new Vector3f(0f, -offset, -0.025f);
+                default -> new Vector3f(0f, 0f, -0.025f);
+            };
         }
 
     }

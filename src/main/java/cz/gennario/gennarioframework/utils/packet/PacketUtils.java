@@ -17,7 +17,7 @@ import cz.gennario.gennarioframework.utils.packet.click.PacketClickResponse;
 import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentEntry;
 import cz.gennario.gennarioframework.utils.packet.equipment.PacketEquipmentSlot;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -210,7 +210,10 @@ public final class PacketUtils {
     // ── Public helpers (kept for external plugin compatibility) ───────────────
 
     public static int generateRandomEntityId() {
-        return Integer.parseInt(RandomStringUtils.random(8, false, true));
+        // Use IDs in range 1_000_000_000..2_147_483_647 to avoid collision with
+        // real server entity IDs (server assigns sequential IDs starting from 1;
+        // reaching 1 billion would require years of continuous operation).
+        return 1_000_000_000 + ThreadLocalRandom.current().nextInt(1_147_483_647);
     }
 
     public static void teleportToLocation(Player player, Location location) {
